@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/mark-brannan/coast-wright/security/advisories/new
+    about: Report privately, not as a public issue. See SECURITY.md.
+  - name: The shape in the data is wrong
+    url: https://github.com/mark-brannan/portolani/issues
+    about: Simplification, clipping and the antimeridian in the source geometry belong to the generator, not to the renderer.
+  - name: You want different geometry to draw
+    url: https://github.com/mark-brannan/coastlines/issues
+    about: coastlines publishes ready-made profiles; portolani generates custom ones, including regional extracts at pilotage scale.
+  - name: The portolano format itself
+    url: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md
+    about: What this library decodes is specified independently, including the change policy. Read it before proposing a newly accepted document shape.
