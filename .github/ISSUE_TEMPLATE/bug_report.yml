@@ -1,0 +1,92 @@
+name: Bug report
+description: Something is drawn wrong, or a document is refused
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **If the JSON is right and the picture is wrong, this is the right
+        repository.** If the shape is wrong in the data itself, that is
+        [portolani](https://github.com/mark-brannan/portolani/issues), which
+        generates it. When in doubt, file it here and it will be moved.
+
+        Security problems go through a
+        [private advisory](https://github.com/mark-brannan/coast-wright/security/advisories/new)
+        instead — please don't file them here.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem
+      options:
+        - A line runs straight across the map (a seam)
+        - Something is drawn in the wrong place
+        - A fill has the wrong holes, or fills the sea
+        - A document was refused that should have been accepted
+        - A document was accepted that should have been refused
+        - Performance — redraw or resize is slow
+        - Something else
+    validations:
+      required: true
+
+  - type: input
+    id: loncenter
+    attributes:
+      label: lonCenter
+      description: >
+        The longitude your projection measures from, as passed to `limn`. This
+        is the first thing to check for anything drawn in the wrong place: the
+        seam guard tests against `lonCenter`, not against the dateline, so a
+        value that does not match your projection guards the wrong place.
+      placeholder: '-71.4 (map centred on the vessel)'
+    validations:
+      required: true
+
+  - type: textarea
+    id: projection
+    attributes:
+      label: Your projection
+      description: >
+        The `x` and `y` functions, or a description — equirectangular,
+        azimuthal over a pole, a band around a vessel. This library assumes
+        nothing about them, so it matters.
+      render: js
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what you expected
+      description: A screenshot is useful here. Say roughly where on the map it goes wrong.
+    validations:
+      required: true
+
+  - type: input
+    id: data
+    attributes:
+      label: Which document
+      description: >
+        A `coastlines` profile, or your own portolani output with its knob
+        values. `encoding.precision` from the document is worth including.
+      placeholder: 'coastlines/coastline-110m'
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: coast-wright version
+      description: '`npm ls coast-wright`.'
+      placeholder: '0.0.1-alpha.0'
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Where it runs
+      description: Browser and version, or Node and which canvas implementation.
+      placeholder: 'Safari 18 on iPadOS'
+    validations:
+      required: true

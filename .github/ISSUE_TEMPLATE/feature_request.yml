@@ -1,0 +1,64 @@
+name: Feature request
+description: Suggest an option, an export, or a rendering capability
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two things this library will not grow, because they are the reason it
+        exists:
+
+        - **A projection of its own.** `x` and `y` are yours. Every library
+          that brought its own Web Mercator is a library that cannot show a
+          pole.
+        - **A dependency.** It is about 100 lines and it stays that way.
+
+        Anything else is fair game.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to draw?
+      description: >
+        The display, the projection, and what is missing today. Describe it
+        from the screen's point of view rather than as an API.
+      placeholder: >
+        An azimuthal plot centred on the vessel, with land filled rather than
+        outlined, under a translucent data overlay.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change is it
+      options:
+        - A new option on limn
+        - A new export
+        - Accepting a document shape currently refused
+        - Something about performance or the redraw path
+        - Types, packaging, or module format
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What do you do today?
+      description: >
+        Reaching into `rings` yourself, post-processing the output, a second
+        pass over the canvas — the workaround usually shapes the design.
+    validations:
+      required: false
+
+  - type: textarea
+    id: seam
+    attributes:
+      label: Does this touch the seam or the projection?
+      description: >
+        If so, say which `lonCenter` cases it has to keep working. A
+        Greenwich-centred map hides exactly the bugs this library guards
+        against. Leave blank if it does not.
+    validations:
+      required: false
