@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One map, a dozen projections — coast-wright</title>
+<meta name="description" content="The same coastline, the same drawing call, fourteen projections. Drag the boat over a pole or across the date line and watch the map stay honest.">
+<link rel="icon" type="image/svg+xml" href="./gallery.svg">
+<meta property="og:title" content="One map, a dozen projections">
+<meta property="og:description" content="The same coastline, the same drawing call, fourteen projections. Drag the boat over a pole or across the date line.">
+<meta property="og:url" content="https://mark-brannan.github.io/coast-wright/">
+<meta property="og:image" content="https://mark-brannan.github.io/coast-wright/gallery.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://mark-brannan.github.io/coast-wright/gallery.svg">
+<style>
+  :root {
+    color-scheme: light dark;
+    --ink: #1c2733;
+    --faint: #5c6b7a;
+    --line: #2f6db4;
+    --mark: #b4622f;
+    --edge: #d3dae2;
+    --bg: #fdfdfc;
+    --well: #f2f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #dde5ec;
+      --faint: #8fa0b0;
+      --line: #6aa5e0;
+      --mark: #e0a06a;
+      --edge: #37424e;
+      --bg: #14181d;
+      --well: #1b2129;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+  .lede { color: var(--faint); margin: 0 0 1rem; }
+  label { display: block; font-size: 0.85rem; color: var(--faint); margin-bottom: 0.25rem; }
+  select {
+    width: 100%;
+    font: inherit;
+    color: var(--ink);
+    background: var(--well);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+  }
+  .frame {
+    margin: 1rem 0 0.25rem;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--well);
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; touch-action: none; cursor: grab; outline-offset: -3px; }
+  .strip {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--faint);
+    font-size: 0.85rem;
+    margin: 0.35rem 0 1.25rem;
+  }
+  #where { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #note { margin: 0 0 0.5rem; color: var(--faint); font-size: 0.9rem; }
+  pre {
+    background: var(--well);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    margin: 0 0 0.75rem;
+  }
+  .constant { color: var(--faint); font-size: 0.9rem; }
+  .constant code { font-size: 0.85em; }
+  .foot { color: var(--faint); font-size: 0.85rem; margin-top: 2rem; }
+  a { color: var(--line); }
+</style>
+</head>
+<body>
+<main>
+  <h1>One map, a dozen projections</h1>
+  <p class="lede">The coastline never changes and neither does the drawing
+  call. Pick a projection; the few lines that did change are printed under
+  the map. Drag the boat — across the date line, over the pole.</p>
+
+  <label for="projection">Projection</label>
+  <select id="projection" aria-label="Projection"></select>
+
+  <div class="frame">
+    <canvas id="map" aria-label="World coastline drawn in the chosen projection, with a draggable boat"></canvas>
+  </div>
+  <div class="strip">
+    <span>drag the boat, or focus the map and use arrow keys</span>
+    <span id="where"></span>
+  </div>
+
+  <p id="note"></p>
+  <pre><code id="math"></code></pre>
+  <p class="constant">…and every one of them is drawn by the same call:
+  <code>limn(ctx, rings(coastline), x, y, { lonCenter, visible })</code> —
+  <a href="https://github.com/mark-brannan/coast-wright">coast-wright</a> has
+  no projection of its own.</p>
+
+  <p class="foot">Coastline: Natural Earth 1:50m as a
+  <a href="https://github.com/mark-brannan/portolani">portolano</a>, 41&nbsp;KB,
+  from the <a href="https://github.com/mark-brannan/coastlines">coastlines</a>
+  package. Feedback →
+  <a href="https://github.com/mark-brannan/coast-wright/issues/4">the issue
+  this page closes</a>.</p>
+  <noscript><p class="foot">This page is a canvas drawn by JavaScript; there is nothing to show without it.</p></noscript>
+</main>
+<script type="module" src="./demo.js"></script>
+</body>
+</html>
