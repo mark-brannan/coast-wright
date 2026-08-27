@@ -1,6 +1,6 @@
 {
   "name": "coast-wright",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "description": "Decode and draw portolani: seam-aware, projection-agnostic coastline rendering to a canvas, with no dependencies",
   "type": "module",
   "main": "lib/index.js",
@@ -9,13 +9,38 @@
     "./decode": "./lib/decode.js",
     "./package.json": "./package.json"
   },
-  "scripts": { "test": "node --test" },
-  "devDependencies": { "coastlines": "^0.0.1-alpha.0" },
-  "peerDependenciesMeta": { "coastlines": { "optional": true } },
-  "engines": { "node": ">=20" },
-  "keywords": ["coastline", "canvas", "map", "polyline", "portolano", "marine", "signalk"],
+  "scripts": {
+    "test": "node --test",
+    "build:demo": "node scripts/build-demo.mjs"
+  },
+  "devDependencies": {
+    "coastlines": "^0.0.1-alpha.0"
+  },
+  "peerDependenciesMeta": {
+    "coastlines": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.1.0"
+  },
+  "keywords": [
+    "coastline",
+    "canvas",
+    "map",
+    "polyline",
+    "portolano",
+    "marine",
+    "signalk"
+  ],
   "license": "MIT",
   "author": "Mark Brannan",
-  "repository": { "type": "git", "url": "git+https://github.com/mark-brannan/coast-wright.git" },
-  "files": ["lib", "LICENSE"]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mark-brannan/coast-wright.git"
+  },
+  "files": [
+    "lib",
+    "LICENSE"
+  ]
 }

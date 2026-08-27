@@ -1,5 +1,14 @@
 # coast-wright
 
+**[One map, fourteen projections.][demo]** Pick one and watch the world
+redraw.
+
+[![The same coastline three ways: a Mollweide oval, an orthographic globe over Fiji, an azimuthal equidistant disc from the pole](demo/gallery.svg)][demo]
+
+Same coastline, same drawing call, fourteen projections — the [demo][demo]
+prints the few lines of arithmetic that did change next to the map, and the
+boat drags across the date line and over the pole without the map tearing.
+
 > **Alpha.** The code is lifted from a shipping plugin and its tests came with
 > it, but the format it reads is still settling. See
 > [the spec's change policy](https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md#8-changes).
@@ -30,7 +39,9 @@ line straight across the map. So does a ring passing behind a window centred
 anywhere but Greenwich — which is why `limn` tests each segment against
 `lonCenter`, the longitude your projection measures from, rather than against
 the dateline. A dateline-only guard looks correct until somebody centres the
-map on their own boat.
+map on their own boat. And a projection that does not wrap has a seam of its
+own: a `visible` predicate lets it refuse the far hemisphere of a globe, or
+the antipode an azimuthal chart divides by zero on, instead.
 
 **The projection.** `limn` takes your `x` and `y` functions and assumes
 nothing else. Equirectangular, azimuthal over a pole, a band around a vessel —
@@ -54,7 +65,11 @@ not infer holes from it.
 
 ### `limn(ctx, rings, x, y, options)`
 
-Strokes rings onto a canvas 2D context.
+Strokes rings onto a canvas 2D context. `x` and `y` each receive the other
+coordinate as a second argument — `x(lon, lat)` and `y(lat, lon)` — because
+outside the cylindrical family neither output is computable from one
+coordinate alone. A function that ignores the second argument keeps working
+unchanged.
 
 | Option | Default | |
 | --- | --- | --- |
@@ -62,6 +77,7 @@ Strokes rings onto a canvas 2D context.
 | `alpha` | `0.45` | Coastline under data wants to stay under it. |
 | `width` | `1` | Line width in pixels. |
 | `lonCenter` | `0` | The longitude your projection measures from. Get this right or the seam guard guards the wrong place. |
+| `visible` | — | `(lon, lat) => bool`, for projections whose seam is not a wrap. A refused point lifts the pen and is never even projected — orthographic hides the far hemisphere, azimuthal equidistant masks the antipode its arithmetic divides by zero on. The wrap guard keeps running alongside. |
 
 ### `decodeRing(encoded, precision)` → `[[lon, lat], …]`
 
@@ -84,3 +100,4 @@ MIT.
 [spec]: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md
 [gen]: https://github.com/mark-brannan/portolani
 [cl]: https://github.com/mark-brannan/coastlines
+[demo]: https://mark-brannan.github.io/coast-wright/

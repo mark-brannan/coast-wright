@@ -114,3 +114,80 @@ test('limn projects through the caller functions and nothing else', () => {
   limn(ctx, [[[0, 0], [10, 0]]], (lon) => lon * 2, (lat) => lat * 3 + 1, {})
   assert.deepEqual(ctx.segments, [[[0, 1], [20, 1]]])
 })
+
+// Outside the cylindrical family neither output is computable from one
+// coordinate alone, so each function gets the other coordinate too --
+// x(lon, lat) and y(lat, lon), first arguments unchanged so a one-argument
+// caller never notices.
+test('x and y each receive the other coordinate second', () => {
+  const calls = []
+  limn(
+    recordingContext(),
+    [[[10, 20], [11, 21]]],
+    (lon, lat) => (calls.push(['x', lon, lat]), lon),
+    (lat, lon) => (calls.push(['y', lat, lon]), lat),
+    {}
+  )
+  assert.deepEqual(calls, [
+    ['x', 10, 20],
+    ['y', 20, 10],
+    ['x', 11, 21],
+    ['y', 21, 11],
+  ])
+})
+
+// The generalised seam: a projection that does not wrap says which points it
+// cannot draw, and a refused point lifts the pen -- the ring must resume at
+// the next visible point, never bridge the gap.
+test('a refused point lifts the pen rather than bridging the gap', () => {
+  const ring = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
+  const ctx = recordingContext()
+  limn(ctx, [ring], (lon) => lon, (lat) => lat, { visible: (lon) => lon !== 2 })
+  assert.deepEqual(ctx.segments, [
+    [[0, 0], [1, 0]],
+    [[3, 0], [4, 0]],
+  ])
+})
+
+// Refusal happens before projection. Inside an azimuthal projection's
+// antipode mask is exactly where x and y divide by zero, so asking them
+// there -- even for a moveTo that never strokes -- is the bug.
+test('a refused point is never projected', () => {
+  const asked = []
+  limn(
+    recordingContext(),
+    [[[0, 0], [2, 0], [4, 0]]],
+    (lon) => (asked.push(['x', lon]), lon),
+    (lat) => (asked.push(['y', lat]), lat),
+    { visible: (lon) => lon !== 2 }
+  )
+  assert.deepEqual(asked, [
+    ['x', 0], ['y', 0],
+    ['x', 4], ['y', 0],
+  ])
+})
+
+// Orthographic-shaped, with real coastline and a centre in the Pacific: the
+// far hemisphere projects mirrored into the same disc as the near one, so
+// nothing on it may reach the projection at all. The wrap seam keeps
+// applying alongside -- both rules run, neither replaces the other.
+test('a hemisphere mask keeps the far side out of the projection entirely', () => {
+  const lonCenter = 178
+  const lat0 = -17 * (Math.PI / 180)
+  const nearSide = (lon, lat) => {
+    const λ = ((((lon - lonCenter + 180) % 360) + 360) % 360) - 180
+    const φ = lat * (Math.PI / 180)
+    return Math.sin(lat0) * Math.sin(φ) + Math.cos(lat0) * Math.cos(φ) * Math.cos(λ * (Math.PI / 180)) > 0
+  }
+  const { x, y } = project(lonCenter)
+  const guarded = (project) => (a, b) => {
+    assert.ok(nearSide(...(project === x ? [a, b] : [b, a])), `far-side point projected: ${a},${b}`)
+    return project(a)
+  }
+  const ctx = recordingContext()
+  limn(ctx, rings(coastline), guarded(x), guarded(y), { lonCenter, visible: nearSide })
+  assert.ok(ctx.segments.length > 500, `only ${ctx.segments.length} segments drawn`)
+  for (const [from, to] of ctx.segments) {
+    assert.ok(Math.abs(to[0] - from[0]) < width / 2, 'seam drawn despite the mask')
+  }
+})
