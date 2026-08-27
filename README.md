@@ -54,7 +54,11 @@ not infer holes from it.
 
 ### `limn(ctx, rings, x, y, options)`
 
-Strokes rings onto a canvas 2D context.
+Strokes rings onto a canvas 2D context. `x` and `y` each receive the other
+coordinate as a second argument — `x(lon, lat)` and `y(lat, lon)` — because
+outside the cylindrical family neither output is computable from one
+coordinate alone. A function that ignores the second argument keeps working
+unchanged.
 
 | Option | Default | |
 | --- | --- | --- |
@@ -62,6 +66,7 @@ Strokes rings onto a canvas 2D context.
 | `alpha` | `0.45` | Coastline under data wants to stay under it. |
 | `width` | `1` | Line width in pixels. |
 | `lonCenter` | `0` | The longitude your projection measures from. Get this right or the seam guard guards the wrong place. |
+| `visible` | — | `(lon, lat) => bool`, for projections whose seam is not a wrap. A refused point lifts the pen and is never even projected — orthographic hides the far hemisphere, azimuthal equidistant masks the antipode its arithmetic divides by zero on. The wrap guard keeps running alongside. |
 
 ### `decodeRing(encoded, precision)` → `[[lon, lat], …]`
 

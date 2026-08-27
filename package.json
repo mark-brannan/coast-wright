@@ -1,6 +1,6 @@
 {
   "name": "coast-wright",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.1-alpha.1",
   "description": "Decode and draw portolani: seam-aware, projection-agnostic coastline rendering to a canvas, with no dependencies",
   "type": "module",
   "main": "lib/index.js",
