@@ -1,6 +1,6 @@
 # coast-wright
 
-**[One map, a dozen projections.][demo]** Pick one and watch the world
+**[One map, fourteen projections.][demo]** Pick one and watch the world
 redraw.
 
 [![The same coastline three ways: a Mollweide oval, an orthographic globe over Fiji, an azimuthal equidistant disc from the pole](demo/gallery.svg)][demo]

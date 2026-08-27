@@ -157,11 +157,14 @@ test('a refused point is never projected', () => {
   limn(
     recordingContext(),
     [[[0, 0], [2, 0], [4, 0]]],
-    (lon) => (asked.push(lon), lon),
-    (lat) => lat,
+    (lon) => (asked.push(['x', lon]), lon),
+    (lat) => (asked.push(['y', lat]), lat),
     { visible: (lon) => lon !== 2 }
   )
-  assert.deepEqual(asked, [0, 4])
+  assert.deepEqual(asked, [
+    ['x', 0], ['y', 0],
+    ['x', 4], ['y', 0],
+  ])
 })
 
 // Orthographic-shaped, with real coastline and a centre in the Pacific: the

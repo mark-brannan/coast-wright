@@ -38,7 +38,8 @@ export const hard = [
     note: 'Distance and bearing from the centre are true. The whole world, except the one point behind you.',
     make(φ0) {
       // c is angular distance from the centre; every direction preserves it.
-      const c = (λ, φ) => acos(sin(φ0) * sin(φ) + cos(φ0) * cos(φ) * cos(λ))
+      const cosc = (λ, φ) => sin(φ0) * sin(φ) + cos(φ0) * cos(φ) * cos(λ)
+      const c = (λ, φ) => acos(Math.max(-1, Math.min(1, cosc(λ, φ))))
       const k = (λ, φ) => (c(λ, φ) < 1e-9 ? 1 : c(λ, φ) / sin(c(λ, φ)))
       const X = (λ, φ) => k(λ, φ) * cos(φ) * sin(λ)
       const Y = (λ, φ) => k(λ, φ) * (cos(φ0) * sin(φ) - sin(φ0) * cos(φ) * cos(λ))
