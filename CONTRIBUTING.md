@@ -104,7 +104,9 @@ Pre-1.0 and alpha, so the interface can still move:
 
 ## Code of Conduct
 
-Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Participation is governed by the
+[Code of Conduct](https://github.com/mark-brannan/.github/blob/main/CODE_OF_CONDUCT.md),
+the org-wide default now that this repo doesn't carry its own copy.
 
 ## Licence
 
