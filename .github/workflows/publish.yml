@@ -35,7 +35,11 @@ jobs:
     # Refusing anything but a real tag closes that.
     if: github.ref_type == 'tag'
     steps:
+      # Nothing here writes to the repository -- release-please.yml owns the
+      # tag and the Release -- and the checkout's token should not outlive
+      # the step. Same rationale as test.yml's checkout.
       - uses: actions/checkout@v7
+        with: { persist-credentials: false }
 
       - uses: actions/setup-node@v7
         with:
