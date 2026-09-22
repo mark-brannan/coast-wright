@@ -6,9 +6,6 @@ name: Release
 # mark-brannan/.github/.github/workflows/release-please.yml for the full
 # rationale (batching, squash-merge requirement, tag format, version
 # policy).
-#
-# This repo has no publish.yml -- nothing to dispatch on release -- so the
-# caller opts out with `publish: false`.
 
 on:
   push:
@@ -23,8 +20,6 @@ permissions:
 jobs:
   release:
     uses: mark-brannan/.github/.github/workflows/release-please.yml@main
-    with:
-      publish: false
     secrets:
       RELEASE_PLEASE_APP_CLIENT_ID: ${{ secrets.RELEASE_PLEASE_APP_CLIENT_ID }}
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
