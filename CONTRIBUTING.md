@@ -1,25 +1,20 @@
 # Contributing
 
-Thanks for looking. coast-wright decodes and draws
-[portolani][spec] — compact coastline geometry — onto a canvas, through
-whatever projection you already have. About 100 lines, no dependencies, no
+Thanks for looking. coast-wright draws a coastline onto a canvas, through whatever projection you
+already have. It reads [Natural Earth][ne] GeoJSON as published, and keeps a
+decoder for the older [portolano][spec] format for now. No dependencies, no
 projection of its own.
 
 > **This package is alpha.** The code is lifted from a shipping plugin and its
-> tests came with it, but the format it reads is still settling. See
-> [the spec's change policy][changes].
+> tests came with it, but the interface may still move before 0.1.
 
 ## Which repository
 
-- **[portolani](https://github.com/mark-brannan/portolani)** generates the
-  geometry and owns the format.
-- **[coastlines](https://github.com/mark-brannan/coastlines)** publishes
-  ready-made files.
-- **This repository** turns those files into strokes on a canvas.
-
-**If the JSON is right and the picture is wrong, it is ours.** If the shape is
-wrong in the data itself, it is portolani's. When in doubt, file it here; it
-will be moved.
+Only this one, for anything to do with drawing. **If the data is right and the
+picture is wrong, it is ours.** If the shape is wrong in the data itself,
+report it to [Natural Earth][ne]. If it is the portolano decoder's input,
+that format lives in [portolani](https://github.com/mark-brannan/portolani).
+When in doubt, file it here; it will be moved.
 
 ## The two bugs this library exists to prevent
 
@@ -114,4 +109,4 @@ Contributions are licensed under the [MIT licence](LICENSE) that covers this
 project.
 
 [spec]: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md
-[changes]: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md#8-changes
+[ne]: https://www.naturalearthdata.com/

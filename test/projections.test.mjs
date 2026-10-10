@@ -8,6 +8,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { rings, limn } from '../lib/index.js'
 import { projections, frame } from '../demo/projections.js'
 
@@ -15,14 +16,14 @@ const require = createRequire(import.meta.url)
 const coastline = require('./fixtures/coastline-110m.json')
 const coast = rings(coastline)
 
-// The page's own coastline is vendored from the coastlines package like the
-// test fixtures are, and pinned the same way: a stale or edited copy fails
-// instead of quietly shipping.
-test('the vendored demo coastline is the file it claims to be', () => {
-  const shipped = require('../demo/coastline-50m.json')
-  const digest =
-    'sha256:' + createHash('sha256').update(JSON.stringify(shipped.geometry)).digest('hex')
-  assert.equal(digest, shipped.digest, shipped.provenance.source.id)
+// The page's coastline is Natural Earth v5.1.2 ne_50m_coastline.geojson,
+// byte for byte, and pinned: a stale or edited copy fails instead of quietly
+// shipping.
+test('the vendored demo coastline is the Natural Earth file', () => {
+  const digest = createHash('sha256')
+    .update(readFileSync(new URL('../demo/ne_50m_coastline.geojson', import.meta.url)))
+    .digest('hex')
+  assert.equal(digest, '271f1c4c1908312bac6b29d158ea1356544beafc129f260005300913aa5ea283')
 })
 
 test('the menu is a dozen strong and not all cylinders', () => {

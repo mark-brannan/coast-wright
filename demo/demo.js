@@ -2,7 +2,7 @@
 // projection in the menu, and the only thing that changes when the menu does
 // is the arithmetic handed to it. scripts/build-demo.mjs assembles ./lib and
 // the coastline next to this file; nothing here is special-cased per map.
-import { rings, limn } from './lib/index.js'
+import { geojsonRings, limn } from './lib/index.js'
 import { projections, frame } from './projections.js'
 
 const canvas = document.getElementById('map')
@@ -14,9 +14,9 @@ const whereEl = document.getElementById('where')
 
 let coast
 try {
-  const response = await fetch('./coastline-50m.json')
+  const response = await fetch('./ne_50m_coastline.geojson')
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`)
-  coast = rings(await response.json())
+  coast = geojsonRings(await response.json())
 } catch {
   canvas.replaceWith(
     Object.assign(document.createElement('p'), {
@@ -24,7 +24,7 @@ try {
       textContent: "Couldn't load the coastline. Reload to try again.",
     })
   )
-  throw new Error('coastline-50m.json failed to load')
+  throw new Error('ne_50m_coastline.geojson failed to load')
 }
 
 // The boat starts near Fiji: the first paint already straddles the
