@@ -63,6 +63,18 @@ A `polygons` portolano with its hole structure kept. This is what you fill.
 Fill with the even-odd rule; the format does not specify winding order, so do
 not infer holes from it.
 
+### `geojsonRings(geojson)` → `[[lon, lat], …][]`
+
+Every line and polygon ring of a GeoJSON document — a FeatureCollection, a
+Feature or a bare geometry — in source order, ready for `limn`. Natural
+Earth's coastline GeoJSON draws as published, no decoding:
+
+```js
+limn(ctx, geojsonRings(naturalEarthCoastline), x, y, { lonCenter })
+```
+
+Cached per document, like `rings`.
+
 ### `limn(ctx, rings, x, y, options)`
 
 Strokes rings onto a canvas 2D context. `x` and `y` each receive the other
