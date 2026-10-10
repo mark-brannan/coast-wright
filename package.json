@@ -16,11 +16,6 @@
   "devDependencies": {
     "coastlines": "^0.0.1-alpha.0"
   },
-  "peerDependenciesMeta": {
-    "coastlines": {
-      "optional": true
-    }
-  },
   "engines": {
     "node": ">=20.1.0"
   },
