@@ -5,112 +5,117 @@ redraw.
 
 [![The same coastline three ways: a Mollweide oval, an orthographic globe over Fiji, an azimuthal equidistant disc from the pole](demo/gallery.svg)][demo]
 
-Same coastline, same drawing call, fourteen projections — the [demo][demo]
+Same coastline, same drawing call, fourteen projections. The [demo][demo]
 prints the few lines of arithmetic that did change next to the map, and the
 boat drags across the date line and over the pole without the map tearing.
 
-> **Alpha.** The code is lifted from a shipping plugin and its tests came with
-> it, but the format it reads is still settling. See
-> [the spec's change policy](https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md#8-changes).
+> **Alpha.** Lifted from a shipping plugin, tests and all. The API may still
+> move before 0.1.
 
-Decode and draw [portolani][spec] — compact coastline geometry — onto a
-canvas, through whatever projection you already have.
+Draw a coastline onto a canvas, through whatever projection you already have.
+Hand it [Natural Earth][ne] GeoJSON as published and it draws every island as
+is, with no decoder and no simplification in between.
 
 ```js
-import coastline from 'coastlines/coastline-110m' with { type: 'json' }
-import { rings, limn } from 'coast-wright'
+import { geojsonRings, limn } from 'coast-wright'
 
-limn(ctx, rings(coastline), lon => /* → px */, lat => /* → py */, {
+const coastline = await (await fetch('./ne_50m_coastline.geojson')).json()
+
+limn(ctx, geojsonRings(coastline), lon => /* → px */, lat => /* → py */, {
   color: '#8ab',
   lonCenter: 0,
 })
 ```
 
-No dependencies. No projection of its own. About 100 lines.
+No dependencies. No projection of its own. A couple of hundred lines.
 
-## Why it isn't a for-loop
+## Who is this for?
 
-Because of two things that are only obvious after they have gone wrong on a
-screen at sea:
+You are drawing a map on a canvas, in a browser or a [Signal K][sk] plugin,
+and you already have a projection or want to choose one. You want the land
+where it is, islands included, and no stray line slashed across the Pacific.
 
-**The seam.** A ring crossing the antimeridian holds two points a tenth of a
-degree apart on the ground and 360 apart in the numbers. Joined, they lay a
-line straight across the map. So does a ring passing behind a window centred
-anywhere but Greenwich — which is why `limn` tests each segment against
-`lonCenter`, the longitude your projection measures from, rather than against
-the dateline. A dateline-only guard looks correct until somebody centres the
-map on their own boat. And a projection that does not wrap has a seam of its
-own: a `visible` predicate lets it refuse the far hemisphere of a globe, or
-the antipode an azimuthal chart divides by zero on, instead.
+## The two things that go wrong at sea
 
-**The projection.** `limn` takes your `x` and `y` functions and assumes
-nothing else. Equirectangular, azimuthal over a pole, a band around a vessel —
-all the same call. The reason coastline data gets drawn by hand instead of
-borrowed is usually that every library brought its own Web Mercator, and
-Mercator cannot show a pole.
+Both look fine in a screenshot. Both fail on a boat.
+
+**The seam.** Where a coastline crosses the date line, two neighbouring
+points are a few miles apart on the water and 360 degrees apart in the
+numbers. Join them and you get a line clean across the map. The same happens
+wherever your map's edge falls, which is why `limn` wants `lonCenter`: the
+longitude your projection measures from. A guard that only knows about the
+date line looks right until somebody centres the map on their own boat. A
+globe has a seam of a different shape, the far side, so `visible` lets your
+projection refuse a point before it is drawn.
+
+**The pole.** Most map libraries bring their own Web Mercator, and Mercator
+cannot show a pole. `limn` brings nothing. It takes your `x` and `y`
+functions and asks no questions, so an azimuthal chart over the pole, a band
+around a vessel and a plain equirectangular grid are all the same call.
 
 ## API
 
-### `rings(portolano)` → `[[lon, lat], …][]`
-
-Every ring of a document, flattened across polygons. This is what you stroke.
-Decoded once per document and cached — it is the same few thousand points on
-every redraw, and a map redraws on resize.
-
-### `polygons(portolano)` → `[[outer, …holes], …]`
-
-A `polygons` portolano with its hole structure kept. This is what you fill.
-Fill with the even-odd rule; the format does not specify winding order, so do
-not infer holes from it.
-
 ### `geojsonRings(geojson)` → `[[lon, lat], …][]`
 
-Every line and polygon ring of a GeoJSON document — a FeatureCollection, a
-Feature or a bare geometry — in source order, ready for `limn`. Natural
-Earth's coastline GeoJSON draws as published, no decoding:
+Every line and polygon ring in a GeoJSON document, as `[lon, lat]` pairs.
+Takes a `FeatureCollection`, a `Feature` or a bare geometry; points are
+skipped. This is what you hand to `limn`.
 
-```js
-limn(ctx, geojsonRings(naturalEarthCoastline), x, y, { lonCenter })
-```
-
-Cached per document, like `rings`.
+The result is cached per document, since a map redraws on every resize and a
+full-detail coastline is tens of thousands of points. Treat it as read-only.
+Anything that is not GeoJSON throws rather than drawing something wrong.
 
 ### `limn(ctx, rings, x, y, options)`
 
-Strokes rings onto a canvas 2D context. `x` and `y` each receive the other
-coordinate as a second argument — `x(lon, lat)` and `y(lat, lon)` — because
-outside the cylindrical family neither output is computable from one
-coordinate alone. A function that ignores the second argument keeps working
-unchanged.
+Strokes rings onto a canvas 2D context. On a globe or an azimuthal chart,
+where a point lands on screen depends on both its coordinates, so each
+function also receives the other one: `x(lon, lat)` and `y(lat, lon)`. A
+function that ignores the second argument keeps working.
 
 | Option | Default | |
 | --- | --- | --- |
 | `color` | context's own | Stroke style. |
-| `alpha` | `0.45` | Coastline under data wants to stay under it. |
+| `alpha` | `0.45` | Coastline under data should stay under it. |
 | `width` | `1` | Line width in pixels. |
-| `lonCenter` | `0` | The longitude your projection measures from. Get this right or the seam guard guards the wrong place. |
-| `visible` | — | `(lon, lat) => bool`, for projections whose seam is not a wrap. A refused point lifts the pen and is never even projected — orthographic hides the far hemisphere, azimuthal equidistant masks the antipode its arithmetic divides by zero on. The wrap guard keeps running alongside. |
+| `lonCenter` | `0` | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place. |
+| `visible` | — | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
 
-### `decodeRing(encoded, precision)` → `[[lon, lat], …]`
+### Portolano decoding, kept for now
 
-One encoded string. `precision` comes from the document's
-`encoding.precision`; do not hard-code it, profiles differ.
+The [portolano][spec] is a compact coastline format from an earlier design.
+New work draws GeoJSON instead ([why][pm]); the decoder stays exported until
+its retirement is decided, so existing callers keep working:
+
+- `rings(portolano)` → every ring, flattened across polygons, cached per
+  document.
+- `polygons(portolano)` → `[[outer, …holes], …]`, holes kept. Fill even-odd;
+  winding order is not promised.
+- `decodeRing(encoded, precision)` → one ring; take `precision` from the
+  document, profiles differ.
 
 `rings` and `polygons` refuse a document whose `format` or coordinate order
-they do not recognise, rather than draw something wrong.
+they do not recognise.
 
 ## Data
 
-[`coastlines`][cl] ships ready-made profiles; [`portolani`][gen] generates
-them, including regional extracts at pilotage scale. Neither is bundled here or
-declared as a dependency — you supply your own geometry, so you choose the
-fidelity and pay for that.
+[Natural Earth][ne] is public domain and publishes its coastline as GeoJSON
+at three scales: about 140 KB, 1.6 MB and 10 MB for 110m, 50m and 10m,
+a third of that gzipped. Nothing is bundled here. Pick the scale by timing
+parse and draw on your own target, then pin the version and check the file's
+hash at build.
+
+```
+https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_coastline.geojson
+```
+
+Natural Earth asks for no credit. If you give one: *Made with Natural Earth.*
 
 ## Licence
 
 MIT.
 
+[ne]: https://www.naturalearthdata.com/
+[sk]: https://signalk.org/
 [spec]: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md
-[gen]: https://github.com/mark-brannan/portolani
-[cl]: https://github.com/mark-brannan/coastlines
+[pm]: https://github.com/mark-brannan/portolani/issues/25
 [demo]: https://mark-brannan.github.io/coast-wright/
