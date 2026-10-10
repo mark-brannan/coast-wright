@@ -38,3 +38,9 @@ test('rings are collected once per document and the result reused', () => {
   const doc = { type: 'LineString', coordinates: a }
   assert.equal(geojsonRings(doc), geojsonRings(doc))
 })
+
+test('input that is not GeoJSON is refused by name, not by a stray TypeError', () => {
+  for (const bad of [null, undefined, 'coastline', 42, {}, { type: 'FeatureCollection' }]) {
+    assert.throws(() => geojsonRings(bad), /GeoJSON|features/)
+  }
+})
