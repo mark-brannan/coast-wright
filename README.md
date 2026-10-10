@@ -90,8 +90,9 @@ they do not recognise, rather than draw something wrong.
 ## Data
 
 [`coastlines`][cl] ships ready-made profiles; [`portolani`][gen] generates
-them, including regional extracts at pilotage scale. Neither is bundled here —
-`coastlines` is an optional peer, so you choose the fidelity and pay for that.
+them, including regional extracts at pilotage scale. Neither is bundled here or
+declared as a dependency — you supply your own geometry, so you choose the
+fidelity and pay for that.
 
 ## Licence
 
