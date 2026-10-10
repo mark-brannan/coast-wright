@@ -82,12 +82,9 @@ function that ignores the second argument keeps working.
 
 ### Portolano decoding, kept for now
 
-An earlier design squeezed the coastline into a compact format of its own,
-the [portolano][spec]. Against the plain Natural Earth file it saved a few
-tens of kilobytes and cost position accuracy and the small islands, so new
-work draws GeoJSON instead; the [post-mortem][pm] has the numbers. The
-decoder stays exported until its retirement is decided, so existing callers
-keep working:
+The [portolano][spec] is a compact coastline format from an earlier design.
+New work draws GeoJSON instead ([why][pm]); the decoder stays exported until
+its retirement is decided, so existing callers keep working:
 
 - `rings(portolano)` → every ring, flattened across polygons, cached per
   document.
@@ -111,8 +108,7 @@ at three scales. Nothing is bundled here. Sizes for v5.1.2, measured:
 | 10m | 9.6 MB | 3.2 MB |
 
 Pick the scale by timing parse and draw on your own target, then pin the
-version and check the file's hash at build. The plugin this came from pins
-v5.1.2 and verifies the sha256 before it ships.
+version and check the file's hash at build.
 
 ```
 https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_coastline.geojson
