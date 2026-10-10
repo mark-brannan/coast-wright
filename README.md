@@ -10,23 +10,24 @@ prints the few lines of arithmetic that did change next to the map, and the
 boat drags across the date line and over the pole without the map tearing.
 
 > **Alpha.** The code is lifted from a shipping plugin and its tests came with
-> it, but the format it reads is still settling. See
-> [the spec's change policy](https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md#8-changes).
+> it, but the API may still move before 0.1.
 
-Decode and draw [portolani][spec] — compact coastline geometry — onto a
-canvas, through whatever projection you already have.
+Draw a coastline onto a canvas, through whatever projection you already have.
+Feed it GeoJSON as published — [Natural Earth][ne] draws as-is, every island
+kept, no decoder and no simplification step in between.
 
 ```js
-import coastline from 'coastlines/coastline-110m' with { type: 'json' }
-import { rings, limn } from 'coast-wright'
+import { geojsonRings, limn } from 'coast-wright'
 
-limn(ctx, rings(coastline), lon => /* → px */, lat => /* → py */, {
+const coastline = await (await fetch('./ne_50m_coastline.geojson')).json()
+
+limn(ctx, geojsonRings(coastline), lon => /* → px */, lat => /* → py */, {
   color: '#8ab',
   lonCenter: 0,
 })
 ```
 
-No dependencies. No projection of its own. About 100 lines.
+No dependencies. No projection of its own. A couple of hundred lines.
 
 ## Why it isn't a for-loop
 
@@ -51,29 +52,17 @@ Mercator cannot show a pole.
 
 ## API
 
-### `rings(portolano)` → `[[lon, lat], …][]`
-
-Every ring of a document, flattened across polygons. This is what you stroke.
-Decoded once per document and cached — it is the same few thousand points on
-every redraw, and a map redraws on resize.
-
-### `polygons(portolano)` → `[[outer, …holes], …]`
-
-A `polygons` portolano with its hole structure kept. This is what you fill.
-Fill with the even-odd rule; the format does not specify winding order, so do
-not infer holes from it.
-
 ### `geojsonRings(geojson)` → `[[lon, lat], …][]`
 
-Every line and polygon ring of a GeoJSON document — a FeatureCollection, a
-Feature or a bare geometry — in source order, ready for `limn`. Natural
-Earth's coastline GeoJSON draws as published, no decoding:
+Every line and polygon ring of a GeoJSON document, flattened in source order,
+as `[lon, lat]` pairs. Takes a `FeatureCollection`, a `Feature` or a bare
+geometry; points are skipped, there being nothing to stroke. This is what you
+hand to `limn`.
 
-```js
-limn(ctx, geojsonRings(naturalEarthCoastline), x, y, { lonCenter })
-```
-
-Cached per document, like `rings`.
+Cached per document: a map redraws on every resize, and a full-detail
+coastline is tens of thousands of points. The returned array is shared, so do
+not mutate it. Input that is not GeoJSON throws rather than drawing something
+wrong.
 
 ### `limn(ctx, rings, x, y, options)`
 
@@ -91,26 +80,45 @@ unchanged.
 | `lonCenter` | `0` | The longitude your projection measures from. Get this right or the seam guard guards the wrong place. |
 | `visible` | — | `(lon, lat) => bool`, for projections whose seam is not a wrap. A refused point lifts the pen and is never even projected — orthographic hides the far hemisphere, azimuthal equidistant masks the antipode its arithmetic divides by zero on. The wrap guard keeps running alongside. |
 
-### `decodeRing(encoded, precision)` → `[[lon, lat], …]`
+### Portolano decoding, kept for now
 
-One encoded string. `precision` comes from the document's
-`encoding.precision`; do not hard-code it, profiles differ.
+An earlier design encoded the coastline into a compact format of its own,
+the [portolano][spec]. Measured against the plain Natural Earth file it saved
+a few tens of kilobytes and cost position accuracy and the small islands,
+so new work draws GeoJSON instead; the [post-mortem][pm] has the numbers.
+The decoder stays exported until its retirement is decided, so existing
+callers keep working:
+
+- `rings(portolano)` → every ring, flattened across polygons, cached per
+  document.
+- `polygons(portolano)` → `[[outer, …holes], …]`, holes kept. Fill even-odd;
+  winding order is not promised.
+- `decodeRing(encoded, precision)` → one ring; take `precision` from the
+  document, profiles differ.
 
 `rings` and `polygons` refuse a document whose `format` or coordinate order
-they do not recognise, rather than draw something wrong.
+they do not recognise.
 
 ## Data
 
-[`coastlines`][cl] ships ready-made profiles; [`portolani`][gen] generates
-them, including regional extracts at pilotage scale. Neither is bundled here or
-declared as a dependency — you supply your own geometry, so you choose the
-fidelity and pay for that.
+[Natural Earth][ne] is public domain and publishes its coastline as GeoJSON
+at three scales, 110m, 50m and 10m. Nothing is bundled here: pick the scale
+by measuring parse and draw time on your own target, then pin the version
+and check its hash at build. The plugin this came from pins v5.1.2 and
+verifies the file's sha256 before it ships.
+
+```
+https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_coastline.geojson
+```
+
+Attribution, per their terms: *Made with Natural Earth. Free vector and
+raster map data @ naturalearthdata.com.*
 
 ## Licence
 
 MIT.
 
+[ne]: https://www.naturalearthdata.com/
 [spec]: https://github.com/mark-brannan/portolani/blob/main/docs/portolano-format.md
-[gen]: https://github.com/mark-brannan/portolani
-[cl]: https://github.com/mark-brannan/coastlines
+[pm]: https://github.com/mark-brannan/portolani/issues/25
 [demo]: https://mark-brannan.github.io/coast-wright/
