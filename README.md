@@ -99,23 +99,16 @@ they do not recognise.
 ## Data
 
 [Natural Earth][ne] is public domain and publishes its coastline as GeoJSON
-at three scales. Nothing is bundled here. Sizes for v5.1.2, measured:
-
-| Scale | File | Gzipped |
-| --- | ---: | ---: |
-| 110m | 137 KB | 52 KB |
-| 50m | 1.6 MB | 517 KB |
-| 10m | 9.6 MB | 3.2 MB |
-
-Pick the scale by timing parse and draw on your own target, then pin the
-version and check the file's hash at build.
+at three scales: about 140 KB, 1.6 MB and 10 MB for 110m, 50m and 10m,
+a third of that gzipped. Nothing is bundled here. Pick the scale by timing
+parse and draw on your own target, then pin the version and check the file's
+hash at build.
 
 ```
 https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_coastline.geojson
 ```
 
-Attribution, per their terms: *Made with Natural Earth. Free vector and
-raster map data @ naturalearthdata.com.*
+Natural Earth asks for no credit. If you give one: *Made with Natural Earth.*
 
 ## Licence
 
