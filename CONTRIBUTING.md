@@ -1,9 +1,9 @@
 # Contributing
 
-Thanks for looking. coast-wright draws a coastline onto a canvas, through whatever projection you
-already have. It reads [Natural Earth][ne] GeoJSON as published, and keeps a
-decoder for the older [portolano][spec] format for now. No dependencies, no
-projection of its own.
+Thanks for looking. coast-wright draws a coastline onto a canvas, through
+whatever projection you already have. It reads [Natural Earth][ne] GeoJSON as
+published, and keeps a decoder for the older [portolano][spec] format for now.
+No dependencies, no projection of its own.
 
 > **This package is alpha.** The code is lifted from a shipping plugin and its
 > tests came with it, but the interface may still move before 0.1.
