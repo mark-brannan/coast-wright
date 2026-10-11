@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.2-alpha.1...v0.0.3-alpha.1) (2026-10-11)
+
+
+### Fixed
+
+* **ci:** hold publish on npm 11, not latest ([#29](https://github.com/mark-brannan/coast-wright/issues/29)) ([4cc602b](https://github.com/mark-brannan/coast-wright/commit/4cc602b7f8ce82aa405bac698b06dfc97e864325))
+
 ## [0.0.2-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.1-alpha.1...v0.0.2-alpha.1) (2026-10-11)
 
 
