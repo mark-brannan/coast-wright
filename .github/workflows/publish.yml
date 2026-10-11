@@ -64,4 +64,9 @@ jobs:
       - run: npm test
 
       # No NODE_AUTH_TOKEN. Authentication is the OIDC identity above.
-      - run: npm publish
+      # npm 11 refuses a prerelease without --tag: 0.0.2-alpha.1 goes out
+      # under `alpha`, a plain version under `latest`.
+      - name: npm publish
+        run: |
+          PRE=$(node -p "(require('./package.json').version.split('-')[1] || '').split('.')[0]")
+          npm publish --tag "${PRE:-latest}"
