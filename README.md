@@ -1,13 +1,10 @@
 # coast-wright
 
-**[One map, fourteen projections.][demo]** Pick one and watch the world
-redraw.
+[![coast-wright: one coastline drawn through a Winkel tripel map, with fourteen projections as thumbnails](demo/preview.png)][demo]
 
-[![The same coastline three ways: a Mollweide oval, an orthographic globe over Fiji, an azimuthal equidistant disc from the pole](demo/gallery.svg)][demo]
-
-Same coastline, same drawing call, fourteen projections. The [demo][demo]
-prints the few lines of arithmetic that did change next to the map, and the
-boat drags across the date line and over the pole without the map tearing.
+**[One map, fourteen projections.][demo]** Same coastline, same drawing call.
+Scroll to zoom, click to recentre, and cross the date line or a pole without
+the map tearing.
 
 > **Alpha.** Lifted from a shipping plugin, tests and all. The API may still
 > move before 0.1.
