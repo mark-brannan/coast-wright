@@ -26,6 +26,22 @@ test('the vendored demo coastline is the Natural Earth file', () => {
   assert.equal(digest, '271f1c4c1908312bac6b29d158ea1356544beafc129f260005300913aa5ea283')
 })
 
+// The optional layers are pinned the same way.
+const layers = {
+  ne_50m_admin_0_boundary_lines_land: '2faac4f6b34386f3d21b6e018cf151f241f00e5c936d44dd17d7d9bfb147fa48',
+  ne_50m_rivers_lake_centerlines: 'f286e0ce978fde999ca2d7a78c764be08542e19b63cded52b05c12d5173ccc51',
+  ne_50m_lakes: 'd350b75978b26fe839b797c2c529b2fb8f47fb3983c03f4964e36d5df9378a52',
+  ne_50m_antarctic_ice_shelves_lines: '549eabb5a2e2913f1dfde976871c0cf2bbc62eea0b24a2a293fa3faa185f830d',
+}
+for (const [name, sha] of Object.entries(layers)) {
+  test(`the vendored ${name} layer is the Natural Earth file`, () => {
+    const digest = createHash('sha256')
+      .update(readFileSync(new URL(`../demo/${name}.geojson`, import.meta.url)))
+      .digest('hex')
+    assert.equal(digest, sha)
+  })
+}
+
 test('the menu is a dozen strong and not all cylinders', () => {
   assert.ok(projections.length >= 12, `${projections.length} projections`)
   assert.equal(new Set(projections.map((p) => p.id)).size, projections.length)
