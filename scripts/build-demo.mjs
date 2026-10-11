@@ -6,7 +6,8 @@
 // `python3 -m http.server -d _site`.
 //
 // The library's smallness is the point, so lib/ has its own budget; the site
-// budget is dominated by the vendored Natural Earth file. The build fails
+// budget is dominated by the vendored Natural Earth layers, which load on
+// demand, so it bounds the repository more than any one visit. The build fails
 // rather than ship either heavier than its budget.
 
 import { cp, mkdir, readdir, rm, stat } from 'node:fs/promises'
@@ -16,7 +17,7 @@ import path from 'node:path'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const site = path.join(root, '_site')
 const LIB_BUDGET = 16_000
-const BUDGET = 1_800_000
+const BUDGET = 5_200_000
 
 await rm(site, { recursive: true, force: true })
 await mkdir(path.join(site, 'lib'), { recursive: true })
