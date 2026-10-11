@@ -1,6 +1,6 @@
 # coast-wright
 
-[![coast-wright: one coastline drawn through a Winkel tripel projection, with the fourteen projections listed alongside as thumbnails](demo/preview.png)][demo]
+[![coast-wright: one coastline drawn through a Winkel tripel map, with fourteen projections as thumbnails](demo/preview.png)][demo]
 
 **[One map, fourteen projections.][demo]** Same coastline, same drawing call.
 Scroll to zoom, click to recentre, and cross the date line or a pole without

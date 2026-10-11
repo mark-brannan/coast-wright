@@ -417,7 +417,7 @@ async function load(layer) {
       if (!r.ok) throw new Error(`${r.status} ${r.statusText}`)
       return r.json()
     })
-    .then((json) => { layer.rings = geojsonRings(json) })
+    .then((json) => { if (layer.on) layer.rings = geojsonRings(json) })
     .finally(() => { layer.loading = null })
   return layer.loading
 }
@@ -477,13 +477,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 showMath()
 size()
 const coast = layers.find((l) => l.id === 'coast')
-try {
-  await Promise.all(layers.filter((l) => l.on).map(load))
-} catch {
-  if (!coast.rings) {
-    whereEl.textContent = "Couldn't load the coastline. Reload to try again."
-    throw new Error('ne_50m_coastline.geojson failed to load')
-  }
+await Promise.allSettled(layers.filter((l) => l.on).map(load))
+if (coast.on && !coast.rings) {
+  whereEl.textContent = "Couldn't load the coastline. Reload to try again."
+  throw new Error('ne_50m_coastline.geojson failed to load')
 }
 thumbCoast.rings = coast.rings.map((ring) => ring.filter((_, i) => i % 6 === 0 || i === ring.length - 1))
 draw()
