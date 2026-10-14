@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { runs, meander, footprint, lozenge, hatch } from '../lib/index.js'
+import { runs, simplify, meander, footprint, lozenge, hatch } from '../lib/index.js'
 
 const close = (actual, expected, tolerance, message) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${message}: ${actual} is not ${expected}`)
@@ -39,6 +39,14 @@ test('runs lifts the pen at a refused point and never projects it', () => {
     [[3, 0], [4, 0]],
   ])
   assert.deepEqual(asked, [0, 1, 3, 4])
+})
+
+test('simplify drops points within tolerance and keeps the ends and real bends', () => {
+  const run = [[0, 0], [10, 1], [20, -1], [30, 0], [40, 30], [50, 0.5], [60, 0]]
+  const kept = simplify(run, 2)
+  assert.deepEqual(kept, [[0, 0], [30, 0], [40, 30], [50, 0.5], [60, 0]])
+  for (const point of run) assert.ok(distance(point, kept) <= 2, `${point} lost`)
+  assert.deepEqual(simplify([[1, 2], [3, 4]], 5), [[1, 2], [3, 4]])
 })
 
 test('meander keeps its endpoints and stays within its amplitude of the line', () => {
