@@ -15,3 +15,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261014t184230z
 - fill/trace find the horizon from the visible predicate alone, no explicit cap option Undo: add an explicit horizon option ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
+
+### 20261014t184233z
+- trace throws when visible's horizon cannot be followed Undo: close each visible run with a straight line instead ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
