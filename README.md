@@ -119,7 +119,7 @@ miles), as up to `steps + 1` points for `limn` to draw. A portolan chart's
 lattice is many of these. It is straight only on Mercator, and it stops at 85°
 latitude rather than spiral into the pole.
 
-### The hand: `runs`, `pen`, `meander`, `footprint`, `lozenge`, `hatch`
+### The hand: `runs`, `pen`, `simplify`, `meander`, `footprint`, `lozenge`, `hatch`
 
 A period chart's rivers wiggle, its lakes are lozenges and its seas are
 hatched. These work in pixels, after projection, so a wiggle is one size at
@@ -127,6 +127,7 @@ every zoom.
 
 - `runs(rings, x, y, { lonCenter, visible })`: pixel runs, the pen lifted where `limn` lifts it.
 - `pen(ctx, runs, { close })` adds pixel runs to the current path, to stroke or fill.
+- `simplify(run, tolerance)` drops bends smaller than `tolerance` px, before a wave goes on.
 - `meander(run, { amplitude, wavelength, phase })`: the run wiggling, still ending where it did.
 - `footprint(run)` → `{ cx, cy, angle, length, width }`, a shape's box along its long axis.
 - `lozenge(box, steps = 24)`: a closed pointed oval on that box.
