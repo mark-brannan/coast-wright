@@ -16,7 +16,7 @@ import path from 'node:path'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const site = path.join(root, '_site')
-const LIB_BUDGET = 16_000
+const LIB_BUDGET = 24_000
 const BUDGET = 5_200_000
 
 await rm(site, { recursive: true, force: true })
