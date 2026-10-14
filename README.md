@@ -75,7 +75,7 @@ function that ignores the second argument keeps working.
 | `alpha` | `0.45` | Coastline under data should stay under it. |
 | `width` | `1` | Line width in pixels. |
 | `cap` | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
-| `merge` | `false` | Stroke every ring as one path, so a translucent stroke does not darken where rings meet or overlap. |
+| `oneStroke` | `false` | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join. |
 | `lonCenter` | `0` | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place. |
 | `visible` | — | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
 
@@ -107,7 +107,7 @@ stroke on the land:
 ctx.save()
 trace(ctx, geojsonPolygons(land), x, y, { lonCenter })
 ctx.clip('evenodd')
-limn(ctx, geojsonRings(coastline), x, y, { merge: true, cap: 'round', lonCenter })
+limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCenter })
 ctx.restore()
 ```
 

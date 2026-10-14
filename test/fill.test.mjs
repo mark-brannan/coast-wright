@@ -134,9 +134,9 @@ test('geojsonPolygons keeps polygons whole and skips what encloses nothing', () 
   assert.throws(() => geojsonPolygons(null), /not a GeoJSON object/)
 })
 
-test('limn with merge strokes every ring as one path', () => {
+test('limn with oneStroke strokes every ring as one path', () => {
   const ctx = recordingContext()
-  limn(ctx, [box(0, 1, 0, 1), box(2, 3, 0, 1)], x, y, { merge: true })
+  limn(ctx, [box(0, 1, 0, 1), box(2, 3, 0, 1)], x, y, { oneStroke: true })
   assert.deepEqual(ctx.calls, ['beginPath', 'stroke'])
   assert.equal(ctx.rings.length, 2)
 })
