@@ -12,3 +12,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261011t013903z
 - Demo opens on Winkel tripel; gallery.svg kept as favicon only, README image is a demo screenshot Undo: revert README image line and the default spec id ([#26](https://github.com/mark-brannan/coast-wright/pull/26))
+
+### 20261014t184230z
+- fill/trace find the horizon from the visible predicate alone, no explicit cap option Undo: add an explicit horizon option ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
