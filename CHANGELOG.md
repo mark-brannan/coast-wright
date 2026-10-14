@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.3-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.2-alpha.1...v0.0.3-alpha.1) (2026-10-14)
+
+
+### Added
+
+* fill land, keep a stroke on it, and draw rhumb lines ([#32](https://github.com/mark-brannan/coast-wright/issues/32)) ([0a9d191](https://github.com/mark-brannan/coast-wright/commit/0a9d191862670468ccc04c1003e9e8174d0465dd))
+* **fill:** cut land at the horizon with visible ([#35](https://github.com/mark-brannan/coast-wright/issues/35)) ([69ab19f](https://github.com/mark-brannan/coast-wright/commit/69ab19f4090e9291998d42f072ba6882d90904f4))
+* **hand:** hand-drawn line and area treatments for rivers and lakes ([#36](https://github.com/mark-brannan/coast-wright/issues/36)) ([1e1f601](https://github.com/mark-brannan/coast-wright/commit/1e1f601330c80d5c9fbad94d2ab771f568ee439d))
+
+
+### Fixed
+
+* **ci:** hold publish on npm 11, not latest ([#29](https://github.com/mark-brannan/coast-wright/issues/29)) ([4cc602b](https://github.com/mark-brannan/coast-wright/commit/4cc602b7f8ce82aa405bac698b06dfc97e864325))
+
 ## [0.0.2-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.1-alpha.1...v0.0.2-alpha.1) (2026-10-11)
 
 
