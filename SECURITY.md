@@ -6,10 +6,10 @@ This package is alpha and maintained as a single moving line. Only the latest
 version published to npm gets fixes; there are no maintenance branches, and a
 pre-1.0 release may change behaviour in a patch.
 
-| Version | Supported |
-| ------- | --------- |
-| latest `0.0.x-alpha` on [npm](https://www.npmjs.com/package/coast-wright) | yes |
-| anything older | no — upgrade first |
+| Version                                                                   | Supported          |
+| ------------------------------------------------------------------------- | ------------------ |
+| latest `0.0.x-alpha` on [npm](https://www.npmjs.com/package/coast-wright) | yes                |
+| anything older                                                            | no — upgrade first |
 
 **Of the three packages in this family, this is the one that actually runs in
 your process**, usually in a browser, so a version here matters more than a

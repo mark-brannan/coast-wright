@@ -1,190 +1,370 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>coast-wright — fourteen projections</title>
-<meta name="description" content="One coastline, one drawing call, fourteen projections. Scroll to zoom, click to recentre.">
-<link rel="icon" type="image/svg+xml" href="./gallery.svg">
-<meta property="og:title" content="coast-wright — fourteen projections">
-<meta property="og:description" content="One coastline, one drawing call, fourteen projections.">
-<meta property="og:url" content="https://mark-brannan.github.io/coast-wright/">
-<meta property="og:image" content="https://mark-brannan.github.io/coast-wright/preview.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://mark-brannan.github.io/coast-wright/preview.png">
-<style>
-  :root {
-    color-scheme: light dark;
-    --ink: #1d2a36;
-    --faint: #64717d;
-    --bg: #f4f1ea;
-    --panel: #fbfaf6;
-    --edge: #d9d3c5;
-    --sea: #dce8ee;
-    --rim: #9fb4c2;
-    --coast: #1f3d5c;
-    --grat: #9fb4c2;
-    --border: #b25a5f;
-    --river: #3b82bf;
-    --ice: #6f9fbf;
-    --pick: #c4772f;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --ink: #e4e9ee;
-      --faint: #8e9ba8;
-      --bg: #0f141a;
-      --panel: #151c23;
-      --edge: #2a3540;
-      --sea: #162330;
-      --rim: #33475a;
-      --coast: #ecdcb4;
-      --grat: #3b5164;
-      --border: #d98a74;
-      --river: #5ea9de;
-      --ice: #9cc3dc;
-      --pick: #e0a05e;
-    }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
-  @media (min-width: 761px) { body { overflow: hidden; } }
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font: 15px/1.4 system-ui, sans-serif;
-  }
-  a { color: inherit; }
-  .app {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 15rem;
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: "head head" "map side";
-    gap: 0.75rem;
-    height: 100dvh;
-    padding: 0.75rem;
-  }
-  header { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; }
-  .hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  h1 { font-size: 1.15rem; margin: 0; }
-  h1 a { text-decoration: none; }
-  header span { color: var(--faint); font-size: 0.9rem; }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>coast-wright — fourteen projections</title>
+    <meta
+      name="description"
+      content="One coastline, one drawing call, fourteen projections. Scroll to zoom, click to recentre."
+    />
+    <link rel="icon" type="image/svg+xml" href="./gallery.svg" />
+    <meta property="og:title" content="coast-wright — fourteen projections" />
+    <meta
+      property="og:description"
+      content="One coastline, one drawing call, fourteen projections."
+    />
+    <meta property="og:url" content="https://mark-brannan.github.io/coast-wright/" />
+    <meta property="og:image" content="https://mark-brannan.github.io/coast-wright/preview.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://mark-brannan.github.io/coast-wright/preview.png" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --ink: #1d2a36;
+        --faint: #64717d;
+        --bg: #f4f1ea;
+        --panel: #fbfaf6;
+        --edge: #d9d3c5;
+        --sea: #dce8ee;
+        --rim: #9fb4c2;
+        --coast: #1f3d5c;
+        --grat: #9fb4c2;
+        --border: #b25a5f;
+        --river: #3b82bf;
+        --ice: #6f9fbf;
+        --pick: #c4772f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #e4e9ee;
+          --faint: #8e9ba8;
+          --bg: #0f141a;
+          --panel: #151c23;
+          --edge: #2a3540;
+          --sea: #162330;
+          --rim: #33475a;
+          --coast: #ecdcb4;
+          --grat: #3b5164;
+          --border: #d98a74;
+          --river: #5ea9de;
+          --ice: #9cc3dc;
+          --pick: #e0a05e;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      @media (min-width: 761px) {
+        body {
+          overflow: hidden;
+        }
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.4 system-ui,
+          sans-serif;
+      }
+      a {
+        color: inherit;
+      }
+      .app {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 15rem;
+        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-areas: 'head head' 'map side';
+        gap: 0.75rem;
+        height: 100dvh;
+        padding: 0.75rem;
+      }
+      header {
+        grid-area: head;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem 0.75rem;
+      }
+      .hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      h1 {
+        font-size: 1.15rem;
+        margin: 0;
+      }
+      h1 a {
+        text-decoration: none;
+      }
+      header span {
+        color: var(--faint);
+        font-size: 0.9rem;
+      }
 
-  .map {
-    grid-area: map;
-    position: relative;
-    min-height: 0;
-    border: 1px solid var(--edge);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  canvas#map { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
-  canvas#map:focus-visible { outline: 2px solid var(--pick); outline-offset: -2px; }
-  canvas#map.dragging { cursor: grabbing; }
-  .zoom {
-    position: absolute; top: 0.6rem; right: 0.6rem;
-    display: flex; flex-direction: column;
-    border: 1px solid var(--edge); border-radius: 8px; overflow: hidden;
-    background: var(--panel);
-  }
-  .zoom button {
-    width: 2.25rem; height: 2.25rem;
-    font: 1.15rem/1 system-ui, sans-serif;
-    color: var(--ink); background: none; border: 0; cursor: pointer;
-  }
-  .zoom button + button { border-top: 1px solid var(--edge); }
-  .zoom button:hover { background: var(--sea); }
-  .credit {
-    position: absolute; left: 0.5rem; bottom: 0.4rem;
-    font-size: 0.75rem; color: var(--faint);
-  }
-  .where {
-    position: absolute; right: 0.6rem; bottom: 0.4rem;
-    font-size: 0.75rem; color: var(--faint); font-variant-numeric: tabular-nums;
-  }
+      .map {
+        grid-area: map;
+        position: relative;
+        min-height: 0;
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      canvas#map {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: grab;
+      }
+      canvas#map:focus-visible {
+        outline: 2px solid var(--pick);
+        outline-offset: -2px;
+      }
+      canvas#map.dragging {
+        cursor: grabbing;
+      }
+      .zoom {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--edge);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--panel);
+      }
+      .zoom button {
+        width: 2.25rem;
+        height: 2.25rem;
+        font:
+          1.15rem/1 system-ui,
+          sans-serif;
+        color: var(--ink);
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+      .zoom button + button {
+        border-top: 1px solid var(--edge);
+      }
+      .zoom button:hover {
+        background: var(--sea);
+      }
+      .credit {
+        position: absolute;
+        left: 0.5rem;
+        bottom: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--faint);
+      }
+      .where {
+        position: absolute;
+        right: 0.6rem;
+        bottom: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--faint);
+        font-variant-numeric: tabular-nums;
+      }
 
-  aside {
-    grid-area: side;
-    display: flex; flex-direction: column; gap: 0.75rem;
-    min-height: 0; overflow-y: auto;
-  }
-  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
-  legend { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin-bottom: 0.35rem; padding: 0; }
-  .projections { display: flex; flex-direction: column; gap: 2px; }
-  .projections label, .layers label { position: relative; }
-  .projections label {
-    display: flex; align-items: center; gap: 0.6rem;
-    padding: 0.3rem 0.4rem; border-radius: 8px; border: 1px solid transparent;
-    cursor: pointer;
-  }
-  .projections label:hover { background: var(--panel); }
-  .projections label:has(input:checked) { background: var(--panel); border-color: var(--pick); }
-  .projections label:has(input:focus-visible) { outline: 2px solid var(--pick); }
-  .projections input, .layers input[type=checkbox] { position: absolute; opacity: 0; pointer-events: none; }
-  .projections canvas { width: 72px; height: 44px; flex: none; }
-  .layers { display: flex; flex-wrap: wrap; gap: 0 0.25rem; margin-left: auto; font-size: 0.85rem; }
-  .layers label { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.4rem; cursor: pointer; border-radius: 6px; }
-  .layers label:hover { background: var(--panel); }
-  .layers label:has(input:focus-visible) { outline: 2px solid var(--pick); }
-  .swatch { flex: none; width: 1.1rem; height: 0; border-top: 2px solid var(--c); opacity: 0.25; }
-  .layers label:has(input:checked) .swatch { opacity: 1; }
-  .layers label:has(input:not(:checked)) { color: var(--faint); }
-  .swatch.dash { border-top-style: dashed; }
+      aside {
+        grid-area: side;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      fieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+        min-width: 0;
+      }
+      legend {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--faint);
+        margin-bottom: 0.35rem;
+        padding: 0;
+      }
+      .projections {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .projections label,
+      .layers label {
+        position: relative;
+      }
+      .projections label {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.3rem 0.4rem;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      .projections label:hover {
+        background: var(--panel);
+      }
+      .projections label:has(input:checked) {
+        background: var(--panel);
+        border-color: var(--pick);
+      }
+      .projections label:has(input:focus-visible) {
+        outline: 2px solid var(--pick);
+      }
+      .projections input,
+      .layers input[type='checkbox'] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .projections canvas {
+        width: 72px;
+        height: 44px;
+        flex: none;
+      }
+      .layers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 0.25rem;
+        margin-left: auto;
+        font-size: 0.85rem;
+      }
+      .layers label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.2rem 0.4rem;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      .layers label:hover {
+        background: var(--panel);
+      }
+      .layers label:has(input:focus-visible) {
+        outline: 2px solid var(--pick);
+      }
+      .swatch {
+        flex: none;
+        width: 1.1rem;
+        height: 0;
+        border-top: 2px solid var(--c);
+        opacity: 0.25;
+      }
+      .layers label:has(input:checked) .swatch {
+        opacity: 1;
+      }
+      .layers label:has(input:not(:checked)) {
+        color: var(--faint);
+      }
+      .swatch.dash {
+        border-top-style: dashed;
+      }
 
-  details { font-size: 0.85rem; }
-  summary { cursor: pointer; color: var(--faint); }
-  pre {
-    background: var(--panel); border: 1px solid var(--edge); border-radius: 8px;
-    padding: 0.6rem 0.75rem; overflow-x: auto; font-size: 0.75rem; line-height: 1.45; margin: 0.5rem 0 0;
-  }
+      details {
+        font-size: 0.85rem;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--faint);
+      }
+      pre {
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 8px;
+        padding: 0.6rem 0.75rem;
+        overflow-x: auto;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        margin: 0.5rem 0 0;
+      }
 
-  @media (max-width: 760px) {
-    .app {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto min(68dvh, 85vw) auto;
-      grid-template-areas: "head" "map" "side";
-      height: auto;
-      padding: 0.5rem 0.5rem 1.5rem;
-    }
-    header span { display: none; }
-    aside { overflow: visible; }
-    .projections { flex-direction: row; overflow-x: auto; padding-bottom: 0.25rem; }
-    .projections label { flex-direction: column; gap: 0.2rem; font-size: 0.75rem; text-align: center; width: 6.5rem; flex: none; }
-    .layers { margin-left: 0; }
-  }
-</style>
-</head>
-<body>
-<div class="app">
-  <header>
-    <h1><a href="https://github.com/mark-brannan/coast-wright">coast-wright</a></h1>
-    <span>one coastline, one drawing call, fourteen projections</span>
-    <fieldset class="layers" id="layers"><legend class="hidden">Layers</legend></fieldset>
-  </header>
+      @media (max-width: 760px) {
+        .app {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto min(68dvh, 85vw) auto;
+          grid-template-areas: 'head' 'map' 'side';
+          height: auto;
+          padding: 0.5rem 0.5rem 1.5rem;
+        }
+        header span {
+          display: none;
+        }
+        aside {
+          overflow: visible;
+        }
+        .projections {
+          flex-direction: row;
+          overflow-x: auto;
+          padding-bottom: 0.25rem;
+        }
+        .projections label {
+          flex-direction: column;
+          gap: 0.2rem;
+          font-size: 0.75rem;
+          text-align: center;
+          width: 6.5rem;
+          flex: none;
+        }
+        .layers {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1><a href="https://github.com/mark-brannan/coast-wright">coast-wright</a></h1>
+        <span>one coastline, one drawing call, fourteen projections</span>
+        <fieldset class="layers" id="layers"><legend class="hidden">Layers</legend></fieldset>
+      </header>
 
-  <div class="map">
-    <canvas id="map" tabindex="0" aria-label="World map. Scroll or pinch to zoom, drag to pan, click to recentre; arrow keys pan, plus and minus zoom."></canvas>
-    <div class="zoom">
-      <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
-      <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
-      <button type="button" id="reset" aria-label="Reset view">⟲</button>
+      <div class="map">
+        <canvas
+          id="map"
+          tabindex="0"
+          aria-label="World map. Scroll or pinch to zoom, drag to pan, click to recentre; arrow keys pan, plus and minus zoom."
+        ></canvas>
+        <div class="zoom">
+          <button type="button" id="zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" id="zoom-out" aria-label="Zoom out">−</button>
+          <button type="button" id="reset" aria-label="Reset view">⟲</button>
+        </div>
+        <a class="credit" href="https://www.naturalearthdata.com/">Made with Natural Earth.</a>
+        <span class="where" id="where"></span>
+      </div>
+
+      <aside>
+        <fieldset>
+          <legend>Projection</legend>
+          <div class="projections" id="projections"></div>
+        </fieldset>
+        <details>
+          <summary>The arithmetic</summary>
+          <pre><code id="math"></code></pre>
+        </details>
+      </aside>
     </div>
-    <a class="credit" href="https://www.naturalearthdata.com/">Made with Natural Earth.</a>
-    <span class="where" id="where"></span>
-  </div>
-
-  <aside>
-    <fieldset>
-      <legend>Projection</legend>
-      <div class="projections" id="projections"></div>
-    </fieldset>
-    <details>
-      <summary>The arithmetic</summary>
-      <pre><code id="math"></code></pre>
-    </details>
-  </aside>
-</div>
-<noscript><p>This page is a canvas drawn by JavaScript; there is nothing to show without it.</p></noscript>
-<script type="module" src="./demo.js"></script>
-</body>
+    <noscript
+      ><p>
+        This page is a canvas drawn by JavaScript; there is nothing to show without it.
+      </p></noscript
+    >
+    <script type="module" src="./demo.js"></script>
+  </body>
 </html>

@@ -69,15 +69,15 @@ where a point lands on screen depends on both its coordinates, so each
 function also receives the other one: `x(lon, lat)` and `y(lat, lon)`. A
 function that ignores the second argument keeps working.
 
-| Option | Default | |
-| --- | --- | --- |
-| `color` | context's own | Stroke style. |
-| `alpha` | `0.45` | Coastline under data should stay under it. |
-| `width` | `1` | Line width in pixels. |
-| `cap` | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
-| `oneStroke` | `false` | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join. |
-| `lonCenter` | `0` | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place. |
-| `visible` | — | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
+| Option      | Default       |                                                                                                       |
+| ----------- | ------------- | ----------------------------------------------------------------------------------------------------- |
+| `color`     | context's own | Stroke style.                                                                                         |
+| `alpha`     | `0.45`        | Coastline under data should stay under it.                                                            |
+| `width`     | `1`           | Line width in pixels.                                                                                 |
+| `cap`       | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
+| `oneStroke` | `false`       | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join.  |
+| `lonCenter` | `0`           | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place.        |
+| `visible`   | —             | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
 
 ### `geojsonPolygons(geojson)` → `[[outer, …holes], …]`
 
@@ -91,13 +91,13 @@ Fills land. A polygon that crosses the seam is filled as two shapes meeting
 at the map's edge, never as one smeared across it. On a globe, land is cut
 at the horizon and closed along it, so only the near side is filled.
 
-| Option | Default | |
-| --- | --- | --- |
-| `color` | context's own | Fill style. |
-| `alpha` | `1` | Opacity. |
-| `rule` | `'evenodd'` | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
-| `lonCenter` | `0` | As for `limn`. |
-| `visible` | — | As for `limn`: refused land is cut away along the horizon, never projected. |
+| Option      | Default       |                                                                                                                  |
+| ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `color`     | context's own | Fill style.                                                                                                      |
+| `alpha`     | `1`           | Opacity.                                                                                                         |
+| `rule`      | `'evenodd'`   | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
+| `lonCenter` | `0`           | As for `limn`.                                                                                                   |
+| `visible`   | —             | As for `limn`: refused land is cut away along the horizon, never projected.                                      |
 
 ### `trace(ctx, polygons, x, y, { lonCenter, visible })`
 
@@ -105,11 +105,11 @@ The same path as `fill`, left for you to fill or clip. Clip to it to keep a
 stroke on the land:
 
 ```js
-ctx.save()
-trace(ctx, geojsonPolygons(land), x, y, { lonCenter })
-ctx.clip('evenodd')
-limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCenter })
-ctx.restore()
+ctx.save();
+trace(ctx, geojsonPolygons(land), x, y, { lonCenter });
+ctx.clip('evenodd');
+limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCenter });
+ctx.restore();
 ```
 
 ### `rhumb([lon, lat], bearing, length, steps = 64)` → `[[lon, lat], …]`
@@ -143,11 +143,17 @@ later one is dropped, so sort the list by importance first. An island too
 small to carry its name along its coast gets it level above, as a point would.
 
 ```js
-letter(ctx, [
-  { text: 'Sicilia', at: sicilyRing },            // a stretch of coast or a whole island ring
-  { text: 'Palermo', at: [13.36, 38.12] },        // a point
-  { text: 'Malta', at: { type: 'Point', coordinates: [14.4, 35.9] } },
-], x, y, { fonts: ['IM Fell English', 'Georgia', 'serif'], size: 13, color: '#6b2a1a', lonCenter })
+letter(
+  ctx,
+  [
+    { text: 'Sicilia', at: sicilyRing }, // a stretch of coast or a whole island ring
+    { text: 'Palermo', at: [13.36, 38.12] }, // a point
+    { text: 'Malta', at: { type: 'Point', coordinates: [14.4, 35.9] } },
+  ],
+  x,
+  y,
+  { fonts: ['IM Fell English', 'Georgia', 'serif'], size: 13, color: '#6b2a1a', lonCenter },
+);
 ```
 
 Each name is `{ text, at, land, fonts, size }`. `at` is `[lon, lat]`,
@@ -161,18 +167,18 @@ order as a CSS font stack, so a face that has not loaded yet draws in the next
 one. Load your own first, with `document.fonts.load('13px "IM Fell English"')`
 or a `FontFace`, then draw.
 
-| Option | Default | |
-| --- | --- | --- |
-| `fonts` | `['serif']` | One family or several (a list, or one CSS stack string), first choice first. |
-| `size` | `12` | Font size in pixels. |
-| `style`, `weight` | — | As in a CSS `font`: `'italic'`, `'600'`. |
-| `color` | context's own | Fill style. |
-| `alpha` | `1` | Opacity. |
-| `gap` | `0.3 × size` | Pixels between the coast and the letters. |
-| `padding` | `2` | Pixels kept clear round each name when testing overlap. |
-| `upright` | `true` | Turn upside-down names round. `false` keeps every name reading from the sea. |
-| `lonCenter` | `0` | As for `limn`: a coast crossing the seam is lettered on its longer side. |
-| `visible` | — | As for `limn`: a name whose place is refused is not drawn. |
+| Option            | Default       |                                                                              |
+| ----------------- | ------------- | ---------------------------------------------------------------------------- |
+| `fonts`           | `['serif']`   | One family or several (a list, or one CSS stack string), first choice first. |
+| `size`            | `12`          | Font size in pixels.                                                         |
+| `style`, `weight` | —             | As in a CSS `font`: `'italic'`, `'600'`.                                     |
+| `color`           | context's own | Fill style.                                                                  |
+| `alpha`           | `1`           | Opacity.                                                                     |
+| `gap`             | `0.3 × size`  | Pixels between the coast and the letters.                                    |
+| `padding`         | `2`           | Pixels kept clear round each name when testing overlap.                      |
+| `upright`         | `true`        | Turn upside-down names round. `false` keeps every name reading from the sea. |
+| `lonCenter`       | `0`           | As for `limn`: a coast crossing the seam is lettered on its longer side.     |
+| `visible`         | —             | As for `limn`: a name whose place is refused is not drawn.                   |
 
 Returns the names it drew, each `{ text, font, x, y, angle, baseline, box }`.
 `place(ctx, names, x, y, options)` does the layout alone, without drawing.
@@ -207,7 +213,7 @@ hash at build.
 https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_coastline.geojson
 ```
 
-Natural Earth asks for no credit. If you give one: *Made with Natural Earth.*
+Natural Earth asks for no credit. If you give one: _Made with Natural Earth._
 
 ## Licence
 
