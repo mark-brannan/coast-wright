@@ -74,39 +74,50 @@ function that ignores the second argument keeps working.
 | `color` | context's own | Stroke style. |
 | `alpha` | `0.45` | Coastline under data should stay under it. |
 | `width` | `1` | Line width in pixels. |
-| `cap` | context's own | Line cap, e.g. `'round'`. |
-| `merge` | `false` | Stroke every ring as one path, so a translucent ink lays down once where rings overlap. |
+| `cap` | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
+| `merge` | `false` | Stroke every ring as one path, so a translucent stroke does not darken where rings meet or overlap. |
 | `lonCenter` | `0` | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place. |
 | `visible` | — | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
 
 ### `geojsonPolygons(geojson)` → `[[outer, …holes], …]`
 
 Every polygon in a GeoJSON document, holes kept, cached like
-`geojsonRings`. Lines and points are skipped. This is what you hand to `fill`.
+`geojsonRings`. Lines and points are skipped. This is what you hand to `fill`
+and `trace`.
 
-### `fill(ctx, polygons, x, y, options)` and `trace(…)`
+### `fill(ctx, polygons, x, y, options)`
 
-Fills land. `trace` lays down the same path and leaves it to you, so a stroke
-can be kept on the land: `ctx.save(); trace(…); ctx.clip('evenodd');
-limn(…); ctx.restore()`. A pen cannot lift mid-fill, so a ring crossing the
-seam opposite `lonCenter` is cut there and each side closed on its own; one
-that goes all the way round, as Antarctica does, is closed along its pole.
-Rings clear of the seam are traced exactly as given. No `visible` yet: a
-globe's horizon needs a polygon clip.
+Fills land. A polygon that crosses the seam is filled as two shapes meeting
+at the map's edge, never as one smeared across it. No `visible` yet: a
+globe's far side needs a clipped polygon, not a lifted pen.
 
 | Option | Default | |
 | --- | --- | --- |
-| `color` | context's own | Fill style (`fill` only). |
-| `alpha` | `1` | (`fill` only.) |
-| `rule` | `'evenodd'` | Winding is not promised, so even-odd (`fill` only). |
+| `color` | context's own | Fill style. |
+| `alpha` | `1` | Opacity. |
+| `rule` | `'evenodd'` | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
 | `lonCenter` | `0` | As for `limn`. |
+
+### `trace(ctx, polygons, x, y, { lonCenter })`
+
+The same path as `fill`, left for you to fill or clip. Clip to it to keep a
+stroke on the land:
+
+```js
+ctx.save()
+trace(ctx, geojsonPolygons(land), x, y, { lonCenter })
+ctx.clip('evenodd')
+limn(ctx, geojsonRings(coastline), x, y, { merge: true, cap: 'round', lonCenter })
+ctx.restore()
+```
 
 ### `rhumb([lon, lat], bearing, length, steps = 64)` → `[[lon, lat], …]`
 
-The line a ship sails on one compass bearing (degrees from north), `length`
-degrees of arc long: a portolan chart's lattice. Straight only on Mercator,
-so it comes back as points for `limn` to draw through any projection. It
-stops at 85° latitude, where it would otherwise spiral into the pole.
+The line a ship sails holding one compass course: `bearing` in degrees
+clockwise from north, `length` in degrees of arc (one degree is 60 nautical
+miles), as up to `steps + 1` points for `limn` to draw. A portolan chart's
+lattice is many of these. It is straight only on Mercator, and it stops at 85°
+latitude rather than spiral into the pole.
 
 ### Portolano decoding, kept for now
 
