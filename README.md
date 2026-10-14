@@ -119,6 +119,49 @@ miles), as up to `steps + 1` points for `limn` to draw. A portolan chart's
 lattice is many of these. It is straight only on Mercator, and it stops at 85°
 latitude rather than spiral into the pole.
 
+### `letter(ctx, names, x, y, options)` → placed names
+
+Letters names onto the chart. A coast's name is set along the coast, on the
+land, its letters standing on the shore so that it reads from the sea. A
+point's name sits level above the point. Where two names would overlap, the
+later one is dropped, so sort the list by importance first. An island too
+small to carry its name along its coast gets it level above, as a point would.
+
+```js
+letter(ctx, [
+  { text: 'Sicilia', at: sicilyRing },            // a stretch of coast or a whole island ring
+  { text: 'Palermo', at: [13.36, 38.12] },        // a point
+  { text: 'Malta', at: { type: 'Point', coordinates: [14.4, 35.9] } },
+], x, y, { fonts: ['IM Fell English', 'Georgia', 'serif'], size: 13, color: '#6b2a1a', lonCenter })
+```
+
+Each name is `{ text, at, land, fonts, size }`. `at` is `[lon, lat]`,
+`[[lon, lat], …]`, or a GeoJSON Point, LineString or MultiLineString geometry.
+`land` is which side of the line, walked in order, the land lies: `'left'` by
+default, as Natural Earth winds its coastlines, or `'right'`. `fonts` and
+`size` override the options for that one name.
+
+coast-wright loads no fonts. `fonts` is a list of family names, tried in
+order as a CSS font stack, so a face that has not loaded yet draws in the next
+one. Load your own first, with `document.fonts.load('13px "IM Fell English"')`
+or a `FontFace`, then draw.
+
+| Option | Default | |
+| --- | --- | --- |
+| `fonts` | `['serif']` | One family or several (a list, or one CSS stack string), first choice first. |
+| `size` | `12` | Font size in pixels. |
+| `style`, `weight` | — | As in a CSS `font`: `'italic'`, `'600'`. |
+| `color` | context's own | Fill style. |
+| `alpha` | `1` | Opacity. |
+| `gap` | `0.3 × size` | Pixels between the coast and the letters. |
+| `padding` | `2` | Pixels kept clear round each name when testing overlap. |
+| `upright` | `true` | Turn upside-down names round. `false` keeps every name reading from the sea. |
+| `lonCenter` | `0` | As for `limn`: a coast crossing the seam is lettered on its longer side. |
+| `visible` | — | As for `limn`: a name whose place is refused is not drawn. |
+
+Returns the names it drew, each `{ text, font, x, y, angle, baseline, box }`.
+`place(ctx, names, x, y, options)` does the layout alone, without drawing.
+
 ### Portolano decoding, kept for now
 
 The [portolano][spec] is a compact coastline format from an earlier design.
