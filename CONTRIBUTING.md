@@ -66,7 +66,11 @@ choose their own fidelity rather than being handed one.
 
 ```shell
 npm test
+npm run format:check
 ```
+
+`npm run format` fixes what the check reports. Vendored data and copied
+fixtures are left as they came; `.prettierignore` lists them.
 
 Then:
 

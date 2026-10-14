@@ -23,6 +23,21 @@ jobs:
       # pass with the network unavailable.
       - run: npm test
 
+  # Formatting gate: .prettierrc over the tree. No lockfile is tracked, so this
+  # fetches the exact prettier version package.json pins rather than running
+  # an install. On failure the annotation names the fix, since the check's own
+  # output is the file list, not the command.
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v7
+        with: { node-version: '22' }
+      - run: |
+          v=$(node -p "require('./package.json').devDependencies.prettier")
+          npx --yes "prettier@$v" --check . || { echo "::error::run npm run format"; exit 1; }
+
   # Refuses to call an empty PR green: a branch whose tree equals its base at
   # the merge base (a stray commit reverted it) merges cleanly and lands
   # nothing. Listed in ci-gate's needs, so it needs no ruleset entry.
@@ -50,7 +65,7 @@ jobs:
   # evaluate when a dependency failed or was skipped, so it reports an explicit
   # pass or fail of its own rather than inheriting the skip.
   ci-gate:
-    needs: [test, nonempty]
+    needs: [test, format, nonempty]
     if: always()
     # It reads nothing and writes nothing; the results go in as an input.
     permissions: {}
