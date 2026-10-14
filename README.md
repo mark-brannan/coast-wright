@@ -124,7 +124,8 @@ latitude rather than spiral into the pole.
 Letters names onto the chart. A coast's name is set along the coast, on the
 land, its letters standing on the shore so that it reads from the sea. A
 point's name sits level above the point. Where two names would overlap, the
-later one is dropped, so sort the list by importance first.
+later one is dropped, so sort the list by importance first. An island too
+small to carry its name along its coast gets it level above, as a point would.
 
 ```js
 letter(ctx, [
@@ -147,7 +148,7 @@ or a `FontFace`, then draw.
 
 | Option | Default | |
 | --- | --- | --- |
-| `fonts` | `['serif']` | One family or several, first choice first. |
+| `fonts` | `['serif']` | One family or several (a list, or one CSS stack string), first choice first. |
 | `size` | `12` | Font size in pixels. |
 | `style`, `weight` | — | As in a CSS `font`: `'italic'`, `'600'`. |
 | `color` | context's own | Fill style. |

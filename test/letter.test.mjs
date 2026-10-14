@@ -134,3 +134,24 @@ test('letter draws exactly the names that fit', () => {
   assert.deepEqual(ctx.drawn, ['Genova'])
   assert.equal(placed.length, 1)
 })
+
+test('an island ring shorter than its name is still named, level above it', () => {
+  const islet = [[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5], [0, 0]]
+  const [name] = place(textContext(), [{ text: 'Lampedusa', at: islet }], x, y)
+  assert.equal(name.angle, 0)
+  assert.ok(near(name.x, x(0.25)))
+  assert.ok(ys(name.box).every((py) => py < y(0.5)), 'above the islet')
+})
+
+test('a font stack given as one CSS string is split into its families', () => {
+  const ctx = textContext()
+  place(ctx, [{ text: 'Rodi', at: [28, 36] }], x, y, { fonts: 'IM Fell English, Georgia, serif' })
+  assert.equal(ctx.fonts[0], '12px "IM Fell English", "Georgia", serif')
+})
+
+test('a geometry it cannot letter along throws, and leaves the context as it found it', () => {
+  let depth = 0
+  const ctx = Object.assign(textContext(), { save: () => depth++, restore: () => depth-- })
+  assert.throws(() => place(ctx, [{ text: 'Creta', at: { type: 'Polygon', coordinates: [] } }], x, y), /Polygon/)
+  assert.equal(depth, 0)
+})
