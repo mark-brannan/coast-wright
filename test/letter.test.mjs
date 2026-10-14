@@ -161,3 +161,23 @@ test('a family name with a quote or backslash is escaped, not broken', () => {
   place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['Odd "Face"\\', 'serif'] })
   assert.equal(ctx.fonts[0], '12px "Odd \\"Face\\"\\\\", serif')
 })
+
+test('a pre-quoted family is unquoted and requoted, so a stray quote cannot escape', () => {
+  const ctx = textContext()
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['"Odd"Face"', "'Plain'", 'serif'] })
+  assert.equal(ctx.fonts[0], '12px "Odd\\"Face", "Plain", serif')
+})
+
+test('a control character in a family becomes a CSS escape', () => {
+  const ctx = textContext()
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['A\nB;\x00'] })
+  assert.equal(ctx.fonts[0], '12px "A\\a B;\\0 "')
+})
+
+test('a size that is not a positive finite number falls back to the default', () => {
+  for (const bad of [NaN, Infinity, -4, 0, '12px; x', null]) {
+    const ctx = textContext()
+    place(ctx, [{ text: 'Cos', at: [27, 37], size: bad }], x, y, { size: bad })
+    assert.match(ctx.fonts[0], /^12px /)
+  }
+})
