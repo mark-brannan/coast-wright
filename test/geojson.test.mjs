@@ -1,10 +1,22 @@
-import { test } from 'node:test'
-import assert from 'node:assert/strict'
-import { geojsonRings } from '../lib/index.js'
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { geojsonRings } from '../lib/index.js';
 
-const a = [[-10, 50], [-9, 51]]
-const b = [[170, -40], [175, -41], [170, -40]]
-const c = [[0, 0], [1, 0], [1, 1], [0, 0]]
+const a = [
+  [-10, 50],
+  [-9, 51],
+];
+const b = [
+  [170, -40],
+  [175, -41],
+  [170, -40],
+];
+const c = [
+  [0, 0],
+  [1, 0],
+  [1, 1],
+  [0, 0],
+];
 
 test('every line-bearing geometry flattens to its rings, in source order', () => {
   const doc = {
@@ -24,23 +36,23 @@ test('every line-bearing geometry flattens to its rings, in source order', () =>
         },
       },
     ],
-  }
-  assert.deepEqual(geojsonRings(doc), [a, a, b, b, c, b, c, c])
-})
+  };
+  assert.deepEqual(geojsonRings(doc), [a, a, b, b, c, b, c, c]);
+});
 
 test('a bare Feature or geometry is read the same as a collection of one', () => {
-  const geometry = { type: 'LineString', coordinates: a }
-  assert.deepEqual(geojsonRings(geometry), [a])
-  assert.deepEqual(geojsonRings({ type: 'Feature', geometry }), [a])
-})
+  const geometry = { type: 'LineString', coordinates: a };
+  assert.deepEqual(geojsonRings(geometry), [a]);
+  assert.deepEqual(geojsonRings({ type: 'Feature', geometry }), [a]);
+});
 
 test('rings are collected once per document and the result reused', () => {
-  const doc = { type: 'LineString', coordinates: a }
-  assert.equal(geojsonRings(doc), geojsonRings(doc))
-})
+  const doc = { type: 'LineString', coordinates: a };
+  assert.equal(geojsonRings(doc), geojsonRings(doc));
+});
 
 test('input that is not GeoJSON is refused by name, not by a stray TypeError', () => {
   for (const bad of [null, undefined, 'coastline', 42, {}, { type: 'FeatureCollection' }]) {
-    assert.throws(() => geojsonRings(bad), /GeoJSON|features/)
+    assert.throws(() => geojsonRings(bad), /GeoJSON|features/);
   }
-})
+});

@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+package-lock.json
+CHANGELOG.md
+.release-please-manifest.json
+# CI workflows are not reformatted by this tool
+.github
+_site
+# Vendored Natural Earth data and copies of coastlines files
+demo/*.geojson
+test/fixtures

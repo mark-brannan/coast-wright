@@ -11,10 +11,13 @@
   },
   "scripts": {
     "test": "node --test",
-    "build:demo": "node scripts/build-demo.mjs"
+    "build:demo": "node scripts/build-demo.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "coastlines": "^0.0.1-alpha.0"
+    "coastlines": "^0.0.1-alpha.0",
+    "prettier": "3.6.2"
   },
   "engines": {
     "node": ">=20.1.0"
