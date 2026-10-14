@@ -8,9 +8,8 @@
 // The library's smallness is the point, so lib/ has its own budget, measured
 // two ways: raw bytes on disk and gzipped bytes over the wire. No minifier is a
 // devDependency, so gzip is of the raw source (a minifier would only lower it).
-// Both are printed every run so growth is seen and its cost understood; the site
-// site
-// budget is dominated by the vendored Natural Earth layers, which load on
+// Both are printed every run so growth is seen and its cost understood; the
+// site budget is dominated by the vendored Natural Earth layers, which load on
 // demand, so it bounds the repository more than any one visit. The build fails
 // rather than ship either heavier than its budget.
 
