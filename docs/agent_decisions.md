@@ -18,3 +18,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261014t184233z
 - trace throws when visible's horizon cannot be followed Undo: close each visible run with a straight line instead ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
+
+### 20261014t184236z
+- with visible set, split edges longer than 1 degree before clipping Undo: drop densify in lib/fill.js ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
