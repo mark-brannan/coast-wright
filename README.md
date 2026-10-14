@@ -74,8 +74,50 @@ function that ignores the second argument keeps working.
 | `color` | context's own | Stroke style. |
 | `alpha` | `0.45` | Coastline under data should stay under it. |
 | `width` | `1` | Line width in pixels. |
+| `cap` | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
+| `oneStroke` | `false` | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join. |
 | `lonCenter` | `0` | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place. |
 | `visible` | — | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
+
+### `geojsonPolygons(geojson)` → `[[outer, …holes], …]`
+
+Every polygon in a GeoJSON document, holes kept, cached like
+`geojsonRings`. Lines and points are skipped. This is what you hand to `fill`
+and `trace`.
+
+### `fill(ctx, polygons, x, y, options)`
+
+Fills land. A polygon that crosses the seam is filled as two shapes meeting
+at the map's edge, never as one smeared across it. No `visible` yet: a
+globe's far side needs a clipped polygon, not a lifted pen.
+
+| Option | Default | |
+| --- | --- | --- |
+| `color` | context's own | Fill style. |
+| `alpha` | `1` | Opacity. |
+| `rule` | `'evenodd'` | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
+| `lonCenter` | `0` | As for `limn`. |
+
+### `trace(ctx, polygons, x, y, { lonCenter })`
+
+The same path as `fill`, left for you to fill or clip. Clip to it to keep a
+stroke on the land:
+
+```js
+ctx.save()
+trace(ctx, geojsonPolygons(land), x, y, { lonCenter })
+ctx.clip('evenodd')
+limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCenter })
+ctx.restore()
+```
+
+### `rhumb([lon, lat], bearing, length, steps = 64)` → `[[lon, lat], …]`
+
+The line a ship sails holding one compass course: `bearing` in degrees
+clockwise from north, `length` in degrees of arc (one degree is 60 nautical
+miles), as up to `steps + 1` points for `limn` to draw. A portolan chart's
+lattice is many of these. It is straight only on Mercator, and it stops at 85°
+latitude rather than spiral into the pole.
 
 ### Portolano decoding, kept for now
 
