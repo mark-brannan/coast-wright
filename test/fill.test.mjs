@@ -111,6 +111,76 @@ test('the land, filled from any centre, never lays a shape across the map', () =
   }
 })
 
+/** Even-odd containment, as the canvas fills. */
+const within = (rings, [px, py]) => {
+  let odd = false
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [[xi, yi], [xj, yj]] = [ring[i], ring[j]]
+      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) odd = !odd
+    }
+  }
+  return odd
+}
+
+test('on an orthographic globe, only the near side is filled and nothing behind is projected', () => {
+  // Centred on the Pacific: the far side holds Africa and Europe, which would
+  // otherwise land mirrored inside the same disc.
+  const [lonCenter, lat0] = [178, -17]
+  const D = Math.PI / 180
+  const near = (lon, lat) =>
+    Math.sin(lat0 * D) * Math.sin(lat * D) +
+      Math.cos(lat0 * D) * Math.cos(lat * D) * Math.cos(delta(lon, lonCenter) * D) >
+    0
+  const ortho = ([lon, lat]) => [
+    Math.cos(lat * D) * Math.sin(delta(lon, lonCenter) * D),
+    Math.cos(lat0 * D) * Math.sin(lat * D) -
+      Math.sin(lat0 * D) * Math.cos(lat * D) * Math.cos(delta(lon, lonCenter) * D),
+  ]
+  const guarded = (lon, lat) => {
+    assert.ok(near(lon, lat), `far-side point projected: ${lon},${lat}`)
+    return [lon, lat]
+  }
+  const ctx = recordingContext()
+  trace(ctx, polygons(land), guarded, y, { lonCenter, visible: near })
+  const drawn = ctx.rings.map((ring) => ring.map(ortho))
+  const truth = polygons(land).flat()
+  let wrong = 0
+  let asked = 0
+  for (let lat = -88; lat <= 88; lat += 2) {
+    for (let lon = -179; lon < 180; lon += 2) {
+      if (!near(lon, lat)) continue
+      asked++
+      if (within(truth, [lon, lat]) !== within(drawn, ortho([lon, lat]))) wrong++
+    }
+  }
+  // Only points within a step of the coast or the horizon may disagree.
+  assert.ok(wrong / asked < 0.01, `${wrong} of ${asked} near-side points filled wrongly`)
+})
+
+test('land round an antipode mask keeps a hole there, across the seam', () => {
+  // The mask sits on the seam, as an azimuthal chart's always does.
+  const lonCenter = -150
+  const D = Math.PI / 180
+  // Refuses 10° round 30,0.
+  const shown = (lon, lat) => Math.cos(lat * D) * Math.cos((lon - 30) * D) < Math.cos(10 * D)
+  const plane = (lon, lat) => {
+    assert.ok(shown(lon, lat), `masked point projected: ${lon},${lat}`)
+    return [delta(lon, lonCenter), lat]
+  }
+  const ctx = recordingContext()
+  trace(ctx, [[box(15, 45, -20, 20)]], plane, y, { lonCenter, visible: shown })
+  const at = (lon, lat) => within(ctx.rings, [delta(lon, lonCenter), lat])
+  for (const [lon, lat] of [[27, 0], [33, 4]]) assert.ok(!at(lon, lat), `masked ${lon},${lat} is filled`)
+  for (const [lon, lat] of [[20, 0], [40, 0], [29, 15], [31, -15], [25, 12], [36, -12]]) {
+    assert.ok(at(lon, lat), `land at ${lon},${lat} left unfilled`)
+  }
+  for (const piece of ctx.rings) {
+    const offsets = piece.map(([offset]) => offset)
+    assert.ok(Math.max(...offsets) - Math.min(...offsets) < 180, 'a piece spans the map')
+  }
+})
+
 test('geojsonPolygons keeps polygons whole and skips what encloses nothing', () => {
   const geometry = (type, coordinates) => ({ type: 'Feature', geometry: { type, coordinates } })
   const doc = {
