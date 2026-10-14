@@ -88,8 +88,8 @@ and `trace`.
 ### `fill(ctx, polygons, x, y, options)`
 
 Fills land. A polygon that crosses the seam is filled as two shapes meeting
-at the map's edge, never as one smeared across it. No `visible` yet: a
-globe's far side needs a clipped polygon, not a lifted pen.
+at the map's edge, never as one smeared across it. On a globe, land is cut
+at the horizon and closed along it, so only the near side is filled.
 
 | Option | Default | |
 | --- | --- | --- |
@@ -97,8 +97,9 @@ globe's far side needs a clipped polygon, not a lifted pen.
 | `alpha` | `1` | Opacity. |
 | `rule` | `'evenodd'` | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
 | `lonCenter` | `0` | As for `limn`. |
+| `visible` | — | As for `limn`: refused land is cut away along the horizon, never projected. |
 
-### `trace(ctx, polygons, x, y, { lonCenter })`
+### `trace(ctx, polygons, x, y, { lonCenter, visible })`
 
 The same path as `fill`, left for you to fill or clip. Clip to it to keep a
 stroke on the land:
