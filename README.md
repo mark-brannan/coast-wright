@@ -155,15 +155,12 @@ or a `FontFace`, then draw.
 | `alpha` | `1` | Opacity. |
 | `gap` | `0.3 × size` | Pixels between the coast and the letters. |
 | `padding` | `2` | Pixels kept clear round each name when testing overlap. |
-| `upright` | `true` | A name that would read upside down on screen is turned round and hung from the shore, still on the land. `false` keeps every name reading from the sea. |
+| `upright` | `true` | Turn upside-down names round. `false` keeps every name reading from the sea. |
 | `lonCenter` | `0` | As for `limn`: a coast crossing the seam is lettered on its longer side. |
 | `visible` | — | As for `limn`: a name whose place is refused is not drawn. |
 
-Returns the names it drew, each `{ text, font, x, y, angle, baseline, box }`:
-the anchor in pixels, the turn in radians, and the four corners of the space it
-took. `place(ctx, names, x, y, options)` does the layout alone, for a caller
-that wants to draw the text its own way; it only measures, through
-`ctx.measureText`.
+Returns the names it drew, each `{ text, font, x, y, angle, baseline, box }`.
+`place(ctx, names, x, y, options)` does the layout alone, without drawing.
 
 ### Portolano decoding, kept for now
 

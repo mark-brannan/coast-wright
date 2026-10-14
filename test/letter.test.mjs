@@ -155,3 +155,9 @@ test('a geometry it cannot letter along throws, and leaves the context as it fou
   assert.throws(() => place(ctx, [{ text: 'Creta', at: { type: 'Polygon', coordinates: [] } }], x, y), /Polygon/)
   assert.equal(depth, 0)
 })
+
+test('a family name with a quote or backslash is escaped, not broken', () => {
+  const ctx = textContext()
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['Odd "Face"\\', 'serif'] })
+  assert.equal(ctx.fonts[0], '12px "Odd \\"Face\\"\\\\", serif')
+})
