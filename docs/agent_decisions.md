@@ -21,3 +21,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261014t184236z
 - with visible set, split edges longer than 1 degree before clipping Undo: drop densify in lib/fill.js ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
+
+### 20261014t193637z
+- visible must refuse a region lying across the seam; land wholly round a refused region off the seam is filled whole rather than searched for Undo: find a refused point by searching the sphere when no ring crosses, and add the horizon as a hole ([#35](https://github.com/mark-brannan/coast-wright/pull/35#discussion_r4275377452)) ([#35](https://github.com/mark-brannan/coast-wright/pull/35))
