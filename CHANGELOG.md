@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.4-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.3-alpha.1...v0.0.4-alpha.1) (2026-10-15)
+
+
+### Added
+
+* **letter:** a point's name takes a shore and runs perpendicular to it ([#38](https://github.com/mark-brannan/coast-wright/issues/38)) ([98d235e](https://github.com/mark-brannan/coast-wright/commit/98d235eb75b30b20deeb71410cf63ebf8b00999f))
+* **limn:** accept an async iterable of rings, drawing pieces as they arrive ([#40](https://github.com/mark-brannan/coast-wright/issues/40)) ([1249372](https://github.com/mark-brannan/coast-wright/commit/12493726b1940fa5e9f0b99e63b20fe3b636f05e))
+
 ## [0.0.3-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.2-alpha.1...v0.0.3-alpha.1) (2026-10-14)
 
 
