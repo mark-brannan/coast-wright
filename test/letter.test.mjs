@@ -303,3 +303,130 @@ test('a size that is not a positive finite number falls back to the default', ()
     assert.match(ctx.fonts[0], /^12px /);
   }
 });
+
+// A town at (5, 0), lettered across a shore; the land lies to the given side.
+const across = (shore, land, at = [5, 0]) => {
+  const [name] = place(textContext(), [{ text: 'Genova', at, shore, land }], x, y);
+  return name;
+};
+const turned = (angle) => Math.cos(angle) >= -1e-9;
+const centre = (box) => [
+  box.reduce((s, [px]) => s + px, 0) / 4,
+  box.reduce((s, [, py]) => s + py, 0) / 4,
+];
+
+test('a point with a straight shore is lettered perpendicular to it, on the land', () => {
+  // West to east, land on the left, which is north on this screen.
+  const name = across(
+    [
+      [0, 0],
+      [10, 0],
+    ],
+    'left',
+  );
+  // The name stands up the page; upright turns it so it is not upside down.
+  assert.ok(near(Math.abs(name.angle), Math.PI / 2));
+  assert.ok(turned(name.angle));
+  assert.ok(
+    ys(name.box).every((py) => py <= 0 + 1e-9),
+    'all of it north of the shore',
+  );
+  assert.ok(near(centre(name.box)[0], 50), 'on the point, along the shore');
+});
+
+test('land on the right puts the perpendicular name on the other side', () => {
+  const shore = [
+    [0, 0],
+    [10, 0],
+  ];
+  const left = across(shore, 'left');
+  const right = across(shore, 'right');
+  assert.ok(ys(left.box).every((py) => py <= 1e-9));
+  assert.ok(ys(right.box).every((py) => py >= -1e-9));
+  assert.ok(turned(right.angle));
+});
+
+test('a perpendicular name is never upside down, whatever the shore', () => {
+  for (const land of ['left', 'right']) {
+    for (let deg = 0; deg < 360; deg += 15) {
+      const t = (deg * Math.PI) / 180;
+      const shore = [
+        [5 - Math.cos(t), -Math.sin(t)],
+        [5 + Math.cos(t), Math.sin(t)],
+      ];
+      const name = across(shore, land);
+      assert.ok(turned(name.angle), `${land} ${deg} degrees`);
+      // On the land side of the shore line: the shore's land normal, from the point.
+      const sign = land === 'right' ? -1 : 1;
+      const dx = x(Math.cos(t));
+      const dy = y(Math.sin(t));
+      const side = sign * (centre(name.box)[0] - 50) * dy - sign * (centre(name.box)[1] - 0) * dx;
+      assert.ok(side > 0, `${land} ${deg} degrees keeps the land side`);
+    }
+  }
+});
+
+test('the nearest segment of a MultiLineString sets the angle', () => {
+  const name = across(
+    {
+      type: 'MultiLineString',
+      coordinates: [
+        [
+          [0, 20],
+          [10, 20],
+        ],
+        [
+          [0, -1],
+          [10, 1],
+        ],
+      ],
+    },
+    'left',
+  );
+  // Nearest is the second, which rises to the east; the name stands square to it
+  // (a shore of slope -20/100 on the screen), not square to the far one.
+  assert.ok(near(name.angle, Math.atan2(100, 20)));
+});
+
+test('without upright a perpendicular name reads from the shore inland', () => {
+  const [name] = place(
+    textContext(),
+    [
+      {
+        text: 'Genova',
+        at: [5, 0],
+        shore: [
+          [0, 0],
+          [10, 0],
+        ],
+      },
+    ],
+    x,
+    y,
+    { upright: false },
+  );
+  assert.ok(near(name.angle, -Math.PI / 2), 'up the page');
+});
+
+test('an empty or hidden shore leaves a point name level', () => {
+  assert.equal(across([], 'left').angle, 0);
+  assert.equal(across([5, 1], 'left').angle, 0, 'a lone [lon, lat]');
+  assert.equal(across({ type: 'Point', coordinates: [5, 1] }, 'left').angle, 0, 'a Point');
+  const [hidden] = place(
+    textContext(),
+    [
+      {
+        text: 'Genova',
+        at: [5, 0],
+        shore: [
+          [0, 0],
+          [10, 0],
+        ],
+      },
+    ],
+    x,
+    y,
+    { visible: (lon, lat) => lon === 5 && lat === 0 },
+  );
+  assert.equal(hidden.angle, 0);
+});

@@ -145,9 +145,10 @@ every zoom.
 
 Letters names onto the chart. A coast's name is set along the coast, on the
 land, its letters standing on the shore so that it reads from the sea. A
-point's name sits level above the point. Where two names would overlap, the
-later one is dropped, so sort the list by importance first. An island too
-small to carry its name along its coast gets it level above, as a point would.
+point's name sits level above the point, or runs inland from the shore it
+stands on when given `shore`. Where two names would overlap, the later one is
+dropped, so sort the list by importance first. An island too small to carry its
+name along its coast gets it level above, as a point would.
 
 ```js
 letter(
