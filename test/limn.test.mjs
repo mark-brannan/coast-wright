@@ -175,6 +175,31 @@ test('an async iterable of rings draws exactly what the array does', async () =>
   }
 });
 
+// A provider that fails mid-stream must not leave the caller's context saved
+// and half-stroked: the promise rejects, and what was drawn is still finished.
+test('an async iterable that throws still strokes and restores the context', async () => {
+  const { x, y } = project(0);
+  for (const oneStroke of [false, true]) {
+    const log = [];
+    const ctx = new Proxy(
+      {},
+      {
+        get:
+          (_, name) =>
+          (...args) =>
+            log.push(name),
+        set: () => true,
+      },
+    );
+    async function* failing() {
+      yield rings(coastline)[0];
+      throw new Error('fetch failed');
+    }
+    await assert.rejects(limn(ctx, failing(), x, y, { oneStroke }), /fetch failed/);
+    assert.deepEqual(log.slice(-2), ['stroke', 'restore'], `oneStroke ${oneStroke}`);
+  }
+});
+
 // Outside the cylindrical family neither output is computable from one
 // coordinate alone, so each function gets the other coordinate too --
 // x(lon, lat) and y(lat, lon), first arguments unchanged so a one-argument

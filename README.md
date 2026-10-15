@@ -62,7 +62,7 @@ The result is cached per document, since a map redraws on every resize and a
 full-detail coastline is tens of thousands of points. Treat it as read-only.
 Anything that is not GeoJSON throws rather than drawing something wrong.
 
-### `limn(ctx, rings, x, y, options)` → `undefined`, or a `Promise` for an async iterable
+### `limn(ctx, rings, x, y, options)`
 
 Strokes rings onto a canvas 2D context. On a globe or an azimuthal chart,
 where a point lands on screen depends on both its coordinates, so each
@@ -72,7 +72,9 @@ function that ignores the second argument keeps working.
 `rings` may also be an async iterable of rings, for a source that hands them
 over piece by piece. Each ring is drawn as it arrives, exactly as an array's
 would be, and `limn` returns a promise that resolves when the iterable ends;
-an array or other sync iterable is still drawn before `limn` returns.
+an array or other sync iterable is still drawn before `limn` returns, and
+nothing is returned. Draw nothing else on that context until the promise
+settles: the rings share its saved state and, with `oneStroke`, its path.
 
 | Option      | Default       |                                                                                                       |
 | ----------- | ------------- | ----------------------------------------------------------------------------------------------------- |
