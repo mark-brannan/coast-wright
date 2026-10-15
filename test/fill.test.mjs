@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { polygons, geojsonPolygons, trace, fill, limn, rhumb } from '../lib/index.js';
+import { polygons, geojsonPolygons, trace, fill, limn, rhumb, cap } from '../lib/index.js';
 
 const require = createRequire(import.meta.url);
 const land = require('./fixtures/land-110m.json');
@@ -129,10 +129,7 @@ for (const [lonCenter, lat0] of [
 ]) {
   test(`on an orthographic globe at ${lonCenter},${lat0}, only the near side is filled and nothing behind is projected`, () => {
     const D = Math.PI / 180;
-    const near = (lon, lat) =>
-      Math.sin(lat0 * D) * Math.sin(lat * D) +
-        Math.cos(lat0 * D) * Math.cos(lat * D) * Math.cos(delta(lon, lonCenter) * D) >
-      0;
+    const near = cap([lonCenter, lat0], 90);
     const ortho = ([lon, lat]) => [
       Math.cos(lat * D) * Math.sin(delta(lon, lonCenter) * D),
       Math.cos(lat0 * D) * Math.sin(lat * D) -
@@ -164,8 +161,8 @@ test('land round an antipode mask keeps a hole there, across the seam', () => {
   // The mask sits on the seam, as an azimuthal chart's always does.
   const lonCenter = -150;
   const D = Math.PI / 180;
-  // Refuses 10° round 30,0.
-  const shown = (lon, lat) => Math.cos(lat * D) * Math.cos((lon - 30) * D) < Math.cos(10 * D);
+  // Refuses 10° round 30,0: admits everything within 170° of the antipode's antipode.
+  const shown = cap([30 - 180, 0], 170);
   const plane = (lon, lat) => {
     assert.ok(shown(lon, lat), `masked point projected: ${lon},${lat}`);
     return [delta(lon, lonCenter), lat];
