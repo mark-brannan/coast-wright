@@ -430,3 +430,30 @@ test('an empty or hidden shore leaves a point name level', () => {
   );
   assert.equal(hidden.angle, 0);
 });
+
+// Centred on 180°, so a coast across the antimeridian is continuous on screen.
+const pacific = (lon) => (((lon % 360) + 360) % 360) * 10;
+const short = [
+  [179, 0],
+  [-179, 0],
+];
+
+test('lonCenter: null letters a coast across the antimeridian unbroken', () => {
+  const name = (options) =>
+    place(textContext(), [{ text: 'Fiji', at: short }], pacific, y, options);
+  assert.equal(name({}).length, 0, 'the default breaks it into two lone points');
+  assert.equal(name({ lonCenter: null }).length, 1);
+});
+
+test('lonCenter: null takes a shore across the antimeridian for a point name', () => {
+  const angle = (options) =>
+    place(
+      textContext(),
+      [{ text: 'Suva', at: [180, 0], shore: short, land: 'left' }],
+      pacific,
+      y,
+      options,
+    )[0].angle;
+  assert.equal(angle({}), 0, 'the default finds no segment, so the name stays level');
+  assert.ok(near(Math.abs(angle({ lonCenter: null })), Math.PI / 2));
+});

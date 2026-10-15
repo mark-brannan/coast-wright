@@ -271,3 +271,21 @@ test('a rhumb line stops short of the pole and wraps at the seam', () => {
   const across = rhumb([170, 0], 90, 20, 2);
   assert.ok(Math.abs(across[2][0] - -170) < 1e-9, `wrapped to ${across[2][0]}`);
 });
+
+test('lonCenter: null traces a ring across the antimeridian whole', () => {
+  const ctx = recordingContext();
+  const ring = box(170, -170, 0, 10);
+  trace(ctx, [[ring]], x, y, { lonCenter: null });
+  assert.deepEqual(ctx.rings, [ring]);
+});
+
+test('lonCenter: null with visible throws rather than fill round the globe', () => {
+  assert.throws(
+    () =>
+      trace(recordingContext(), [[box(170, -170, 0, 10)]], x, y, {
+        lonCenter: null,
+        visible: () => true,
+      }),
+    TypeError,
+  );
+});
