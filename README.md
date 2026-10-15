@@ -145,7 +145,7 @@ every zoom.
 
 Letters names onto the chart. A coast's name is set along the coast, on the
 land, its letters standing on the shore so that it reads from the sea. A
-point's name sits level above the point. Where two names would overlap, the
+point's name sits level above the point, or, given `shore` (the stretch of coast it stands on), runs perpendicular to that shore, inland, never upside down. Where two names would overlap, the
 later one is dropped, so sort the list by importance first. An island too
 small to carry its name along its coast gets it level above, as a point would.
 
