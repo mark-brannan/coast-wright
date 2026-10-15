@@ -410,6 +410,8 @@ test('without upright a perpendicular name reads from the shore inland', () => {
 
 test('an empty or hidden shore leaves a point name level', () => {
   assert.equal(across([], 'left').angle, 0);
+  assert.equal(across([5, 1], 'left').angle, 0, 'a lone [lon, lat]');
+  assert.equal(across({ type: 'Point', coordinates: [5, 1] }, 'left').angle, 0, 'a Point');
   const [hidden] = place(
     textContext(),
     [
