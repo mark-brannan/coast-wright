@@ -161,7 +161,7 @@ test('land round an antipode mask keeps a hole there, across the seam', () => {
   // The mask sits on the seam, as an azimuthal chart's always does.
   const lonCenter = -150;
   const D = Math.PI / 180;
-  // Refuses 10° round 30,0: admits everything within 170° of the antipode's antipode.
+  // Refuses 10° round 30,0: a 170° cap about its antipode, -150,0.
   const shown = cap([30 - 180, 0], 170);
   const plane = (lon, lat) => {
     assert.ok(shown(lon, lat), `masked point projected: ${lon},${lat}`);
