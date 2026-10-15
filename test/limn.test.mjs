@@ -83,36 +83,40 @@ test('a document from a format we do not know is refused, not guessed at', () =>
 });
 
 const width = 800;
-const project = (lonCenter) => ({
-  x: (lon) => {
-    let delta = lon - lonCenter;
+const projectAbout =
+  (centralMeridian) =>
+  ([lon, lat]) => {
+    let delta = lon - centralMeridian;
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
-    return width / 2 + (delta / 180) * (width / 2);
-  },
-  y: (lat) => 160 - lat,
-});
+    return [width / 2 + (delta / 180) * (width / 2), 160 - lat];
+  };
 
 // A window centred on Greenwich meets the seam at the antimeridian; one
 // centred near Fiji meets it at Greenwich. Both have to survive it, and the
 // second is the case a dateline-only guard gets wrong.
-for (const lonCenter of [0, 178, -122.3]) {
-  test(`limn joins no two points across the seam at ${lonCenter}`, () => {
-    const { x, y } = project(lonCenter);
+for (const centralMeridian of [0, 178, -122.3]) {
+  test(`limn joins no two points across the seam at ${centralMeridian}`, () => {
     const ctx = recordingContext();
-    limn(ctx, rings(coastline), x, y, { color: '#fff', lonCenter });
+    limn(ctx, rings(coastline), projectAbout(centralMeridian), {
+      color: '#fff',
+      centralMeridian,
+    });
 
     assert.ok(ctx.segments.length > 1000, `only ${ctx.segments.length} segments drawn`);
     for (const [from, to] of ctx.segments) {
       // Half the canvas is 180 degrees of longitude. Nothing on a quarter
       // degree coastline moves that far in one step; anything that does is
       // the seam being drawn rather than broken.
-      assert.ok(Math.abs(to[0] - from[0]) < width / 2, `seam drawn at lonCenter ${lonCenter}`);
+      assert.ok(
+        Math.abs(to[0] - from[0]) < width / 2,
+        `seam drawn at centralMeridian ${centralMeridian}`,
+      );
     }
   });
 }
 
-test('limn projects through the caller functions and nothing else', () => {
+test('limn projects through the caller projection and nothing else', () => {
   const ctx = recordingContext();
   limn(
     ctx,
@@ -122,8 +126,7 @@ test('limn projects through the caller functions and nothing else', () => {
         [10, 0],
       ],
     ],
-    (lon) => lon * 2,
-    (lat) => lat * 3 + 1,
+    ([lon, lat]) => [lon * 2, lat * 3 + 1],
     {},
   );
   assert.deepEqual(ctx.segments, [
@@ -138,7 +141,7 @@ test('limn projects through the caller functions and nothing else', () => {
 // it does for the same rings in an array, and the promise must settle only
 // once the last ring is drawn.
 test('an async iterable of rings draws exactly what the array does', async () => {
-  const { x, y } = project(0);
+  const project = projectAbout(0);
   const calls = () => {
     const log = [];
     const ctx = new Proxy(
@@ -153,10 +156,10 @@ test('an async iterable of rings draws exactly what the array does', async () =>
     );
     return { ctx, log };
   };
-  const options = { color: '#fff', width: 2, cap: 'round' };
+  const options = { color: '#fff', width: 2, lineCap: 'round' };
   for (const oneStroke of [false, true]) {
     const sync = calls();
-    const returned = limn(sync.ctx, rings(coastline), x, y, { ...options, oneStroke });
+    const returned = limn(sync.ctx, rings(coastline), project, { ...options, oneStroke });
     assert.equal(returned, undefined, 'an array is drawn synchronously');
 
     const streamed = calls();
@@ -166,7 +169,7 @@ test('an async iterable of rings draws exactly what the array does', async () =>
         yield ring;
       }
     }
-    const pending = limn(streamed.ctx, arriving(), x, y, { ...options, oneStroke });
+    const pending = limn(streamed.ctx, arriving(), project, { ...options, oneStroke });
     assert.ok(pending instanceof Promise);
     await pending;
 
@@ -178,7 +181,7 @@ test('an async iterable of rings draws exactly what the array does', async () =>
 // A provider that fails mid-stream must not leave the caller's context saved
 // and half-stroked: the promise rejects, and what was drawn is still finished.
 test('an async iterable that throws still strokes and restores the context', async () => {
-  const { x, y } = project(0);
+  const project = projectAbout(0);
   for (const oneStroke of [false, true]) {
     const log = [];
     const ctx = new Proxy(
@@ -195,35 +198,9 @@ test('an async iterable that throws still strokes and restores the context', asy
       yield rings(coastline)[0];
       throw new Error('fetch failed');
     }
-    await assert.rejects(limn(ctx, failing(), x, y, { oneStroke }), /fetch failed/);
+    await assert.rejects(limn(ctx, failing(), project, { oneStroke }), /fetch failed/);
     assert.deepEqual(log.slice(-2), ['stroke', 'restore'], `oneStroke ${oneStroke}`);
   }
-});
-
-// Outside the cylindrical family neither output is computable from one
-// coordinate alone, so each function gets the other coordinate too --
-// x(lon, lat) and y(lat, lon), first arguments unchanged so a one-argument
-// caller never notices.
-test('x and y each receive the other coordinate second', () => {
-  const calls = [];
-  limn(
-    recordingContext(),
-    [
-      [
-        [10, 20],
-        [11, 21],
-      ],
-    ],
-    (lon, lat) => (calls.push(['x', lon, lat]), lon),
-    (lat, lon) => (calls.push(['y', lat, lon]), lat),
-    {},
-  );
-  assert.deepEqual(calls, [
-    ['x', 10, 20],
-    ['y', 20, 10],
-    ['x', 11, 21],
-    ['y', 21, 11],
-  ]);
 });
 
 // The generalised seam: a projection that does not wrap says which points it
@@ -238,13 +215,7 @@ test('a refused point lifts the pen rather than bridging the gap', () => {
     [4, 0],
   ];
   const ctx = recordingContext();
-  limn(
-    ctx,
-    [ring],
-    (lon) => lon,
-    (lat) => lat,
-    { visible: (lon) => lon !== 2 },
-  );
+  limn(ctx, [ring], ([lon, lat]) => [lon, lat], { visible: (lon) => lon !== 2 });
   assert.deepEqual(ctx.segments, [
     [
       [0, 0],
@@ -271,16 +242,10 @@ test('a refused point is never projected', () => {
         [4, 0],
       ],
     ],
-    (lon) => (asked.push(['x', lon]), lon),
-    (lat) => (asked.push(['y', lat]), lat),
+    ([lon, lat]) => (asked.push(lon), [lon, lat]),
     { visible: (lon) => lon !== 2 },
   );
-  assert.deepEqual(asked, [
-    ['x', 0],
-    ['y', 0],
-    ['x', 4],
-    ['y', 0],
-  ]);
+  assert.deepEqual(asked, [0, 4]);
 });
 
 // Orthographic-shaped, with real coastline and a centre in the Pacific: the
@@ -288,33 +253,30 @@ test('a refused point is never projected', () => {
 // nothing on it may reach the projection at all. The wrap seam keeps
 // applying alongside -- both rules run, neither replaces the other.
 test('a hemisphere mask keeps the far side out of the projection entirely', () => {
-  const lonCenter = 178;
+  const centralMeridian = 178;
   const lat0 = -17 * (Math.PI / 180);
   const nearSide = (lon, lat) => {
-    const λ = ((((lon - lonCenter + 180) % 360) + 360) % 360) - 180;
+    const λ = ((((lon - centralMeridian + 180) % 360) + 360) % 360) - 180;
     const φ = lat * (Math.PI / 180);
     return (
       Math.sin(lat0) * Math.sin(φ) + Math.cos(lat0) * Math.cos(φ) * Math.cos(λ * (Math.PI / 180)) >
       0
     );
   };
-  const { x, y } = project(lonCenter);
-  const guarded = (project) => (a, b) => {
-    assert.ok(
-      nearSide(...(project === x ? [a, b] : [b, a])),
-      `far-side point projected: ${a},${b}`,
-    );
-    return project(a);
+  const project = projectAbout(centralMeridian);
+  const guarded = ([lon, lat]) => {
+    assert.ok(nearSide(lon, lat), `far-side point projected: ${lon},${lat}`);
+    return project([lon, lat]);
   };
   const ctx = recordingContext();
-  limn(ctx, rings(coastline), guarded(x), guarded(y), { lonCenter, visible: nearSide });
+  limn(ctx, rings(coastline), guarded, { centralMeridian, visible: nearSide });
   assert.ok(ctx.segments.length > 500, `only ${ctx.segments.length} segments drawn`);
   for (const [from, to] of ctx.segments) {
     assert.ok(Math.abs(to[0] - from[0]) < width / 2, 'seam drawn despite the mask');
   }
 });
 
-test('lonCenter: null draws a ring across the opposite meridian unbroken', () => {
+test('centralMeridian: null draws a ring across the opposite meridian unbroken', () => {
   const ring = [
     [170, 10],
     [-170, 10],
@@ -331,5 +293,5 @@ test('lonCenter: null draws a ring across the opposite meridian unbroken', () =>
     return ctx.segments.length;
   };
   assert.equal(draw({}), 0, 'the default still lifts the pen at the seam');
-  assert.equal(draw({ lonCenter: null }), 1);
+  assert.equal(draw({ centralMeridian: null }), 1);
 });

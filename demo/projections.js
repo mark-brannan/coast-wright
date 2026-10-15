@@ -9,7 +9,7 @@
 // canvas. `cap` is where a projection admits what it cannot draw, as an angle
 // in degrees from the centre -- orthographic hides the far hemisphere (90),
 // azimuthal equidistant masks the antipode its arithmetic blows up on. `frame`
-// turns it into coast-wright's `cap` predicate, which `limn` takes as
+// turns it into coast-wright's `withinCap` predicate, which `limn` takes as
 // `visible`; the wrap seam it does not replace is limn's own.
 
 const { sin, cos, tan, atan, asin, acos, log, abs, PI } = Math;
@@ -227,15 +227,18 @@ const wrapped = (d) => (d > 180 ? d - 360 : d < -180 ? d + 360 : d);
 /**
  * A projection centred on (lon0, lat0), shaped for `limn`: degrees in,
  * map units out, Y growing north. The page scales the result to pixels;
- * tests use it as is. `cap` is coast-wright's, handed in because the page and
+ * tests use it as is. `withinCap` is coast-wright's, handed in because the page and
  * the tests each reach the library by a different path.
  */
-export function frame(spec, lon0, lat0, cap) {
+export function frame(spec, lon0, lat0, withinCap) {
   const { X, Y, cap: angle } = spec.make(lat0 * D);
+  const x = (lon, lat) => X(wrapped(lon - lon0) * D, lat * D);
+  const y = (lat, lon) => Y(wrapped(lon - lon0) * D, lat * D);
   return {
-    x: (lon, lat) => X(wrapped(lon - lon0) * D, lat * D),
-    y: (lat, lon) => Y(wrapped(lon - lon0) * D, lat * D),
-    visible: angle === undefined ? undefined : cap([lon0, lat0], angle),
-    lonCenter: lon0,
+    x,
+    y,
+    project: ([lon, lat]) => [x(lon, lat), y(lat, lon)],
+    visible: angle === undefined ? undefined : withinCap([lon0, lat0], angle),
+    centralMeridian: lon0,
   };
 }

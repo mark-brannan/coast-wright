@@ -3,7 +3,7 @@
 // when the projection does is the arithmetic handed to it.
 // scripts/build-demo.mjs assembles ./lib and the Natural Earth layers next to
 // this file; nothing here is special-cased per projection.
-import { cap, geojsonRings, limn } from './lib/index.js';
+import { withinCap, geojsonRings, limn } from './lib/index.js';
 import { projections, frame } from './projections.js';
 
 const D = Math.PI / 180;
@@ -135,7 +135,7 @@ function outline(f, lon0, lat0, top) {
 // zoomed about the centre; the centre is held inside the world so a zoomed
 // cylinder cannot be dragged off its own top.
 function project(s, lon0, lat0, zoom, W, H) {
-  const f = frame(s, lon0, lat0, cap);
+  const f = frame(s, lon0, lat0, withinCap);
   const edge = outline(f, lon0, lat0, latMax(s));
   let minx = Infinity,
     maxx = -Infinity,
@@ -154,12 +154,13 @@ function project(s, lon0, lat0, zoom, W, H) {
   const cy = hold(f.y(lat0, lon0), miny, maxy, H / 2 / k);
   const px = (lon, lat) => W / 2 + k * (f.x(lon, lat) - cx);
   const py = (lat, lon) => H / 2 - k * (f.y(lat, lon) - cy);
+  const project = ([lon, lat]) => [px(lon, lat), py(lat, lon)];
   const rim = new Path2D();
   edge.forEach(([X, Y], i) =>
     rim[i ? 'lineTo' : 'moveTo'](W / 2 + k * (X - cx), H / 2 - k * (Y - cy)),
   );
   rim.closePath();
-  return { f, k, cx, cy, px, py, rim, W, H };
+  return { f, k, cx, cy, px, py, project, rim, W, H };
 }
 
 function paint(c, p, sources, scale = 1) {
@@ -169,11 +170,11 @@ function paint(c, p, sources, scale = 1) {
   for (const layer of sources) {
     if (!layer.rings) continue;
     c.setLineDash(layer.dash ? layer.dash.map((n) => n * scale) : []);
-    limn(c, layer.rings, p.px, p.py, {
+    limn(c, layer.rings, p.project, {
       color: css(layer.color),
       alpha: layer.alpha,
       width: layer.width * scale,
-      lonCenter: p.f.lonCenter,
+      centralMeridian: p.f.centralMeridian,
       visible: p.f.visible,
     });
   }

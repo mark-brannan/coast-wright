@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { rings, limn, cap } from '../lib/index.js';
+import { rings, limn, withinCap } from '../lib/index.js';
 import { projections, frame } from '../demo/projections.js';
 
 const require = createRequire(import.meta.url);
@@ -64,7 +64,7 @@ const centres = [
 for (const spec of projections) {
   for (const [lon0, lat0] of centres) {
     test(`${spec.id} draws a map through limn, centred ${lon0},${lat0}`, () => {
-      const { x, y, visible, lonCenter } = frame(spec, lon0, lat0, cap);
+      const { project, visible, centralMeridian } = frame(spec, lon0, lat0, withinCap);
       let at = null;
       const segments = [];
       const ctx = {
@@ -84,7 +84,7 @@ for (const spec of projections) {
           at = [px, py];
         },
       };
-      limn(ctx, coast, x, y, { lonCenter, visible });
+      limn(ctx, coast, project, { centralMeridian, visible });
 
       assert.ok(segments.length > 500, `only ${segments.length} segments drawn`);
       let minx = Infinity,
