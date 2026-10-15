@@ -275,3 +275,23 @@ test('a hemisphere mask keeps the far side out of the projection entirely', () =
     assert.ok(Math.abs(to[0] - from[0]) < width / 2, 'seam drawn despite the mask');
   }
 });
+
+test('centralMeridian: null draws a ring across the opposite meridian unbroken', () => {
+  const ring = [
+    [170, 10],
+    [-170, 10],
+  ];
+  const draw = (options) => {
+    const ctx = recordingContext();
+    limn(
+      ctx,
+      [ring],
+      (lon) => lon,
+      (lat) => lat,
+      options,
+    );
+    return ctx.segments.length;
+  };
+  assert.equal(draw({}), 0, 'the default still lifts the pen at the seam');
+  assert.equal(draw({ centralMeridian: null }), 1);
+});

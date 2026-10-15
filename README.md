@@ -152,7 +152,7 @@ every zoom.
 - `pen(ctx, runs, { close })` adds pixel runs to the current path, to stroke or fill.
 - `simplify(run, tolerance)` drops bends smaller than `tolerance` px, before a wave goes on.
 - `meander(run, { amplitude, wavelength, phase })`: the run wiggling, still ending where it did.
-- `boundingBox(run)` → `{ cx, cy, angle, length, width }`, a shape's oriented bounding box along its long axis.
+- `boundingBox(run)` → `{ cx, cy, angle, length, width }`, a shape's box along its long axis.
 - `lozenge(box, steps = 24)`: a closed pointed oval on that box.
 - `hatch(ctx, polygons, project, { angle, gap, amplitude, dash, … })` strokes parallel lines, clipped.
 
