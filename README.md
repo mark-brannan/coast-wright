@@ -18,9 +18,9 @@ import { geojsonRings, limn } from 'coast-wright'
 
 const coastline = await (await fetch('./ne_50m_coastline.geojson')).json()
 
-limn(ctx, geojsonRings(coastline), lon => /* → px */, lat => /* → py */, {
+limn(ctx, geojsonRings(coastline), ([lon, lat]) => /* → [px, py] */, {
   color: '#8ab',
-  lonCenter: 0,
+  centralMeridian: 0,
 })
 ```
 
@@ -39,15 +39,15 @@ Both look fine in a screenshot. Both fail on a boat.
 **The seam.** Where a coastline crosses the date line, two neighbouring
 points are a few miles apart on the water and 360 degrees apart in the
 numbers. Join them and you get a line clean across the map. The same happens
-wherever your map's edge falls, which is why `limn` wants `lonCenter`: the
+wherever your map's edge falls, which is why `limn` wants `centralMeridian`: the
 longitude your projection measures from. A guard that only knows about the
 date line looks right until somebody centres the map on their own boat. A
 globe has a seam of a different shape, the far side, so `visible` lets your
 projection refuse a point before it is drawn.
 
 **The pole.** Most map libraries bring their own Web Mercator, and Mercator
-cannot show a pole. `limn` brings nothing. It takes your `x` and `y`
-functions and asks no questions, so an azimuthal chart over the pole, a band
+cannot show a pole. `limn` brings nothing. It takes your
+`project` function and asks no questions, so an azimuthal chart over the pole, a band
 around a vessel and a plain equirectangular grid are all the same call.
 
 ## API
@@ -62,12 +62,16 @@ The result is cached per document, since a map redraws on every resize and a
 full-detail coastline is tens of thousands of points. Treat it as read-only.
 Anything that is not GeoJSON throws rather than drawing something wrong.
 
-### `limn(ctx, rings, x, y, options)`
+### `limn(ctx, rings, project, options)`
 
-Strokes rings onto a canvas 2D context. On a globe or an azimuthal chart,
-where a point lands on screen depends on both its coordinates, so each
-function also receives the other one: `x(lon, lat)` and `y(lat, lon)`. A
-function that ignores the second argument keeps working.
+Strokes rings onto a canvas 2D context. `project([lon, lat])` returns
+`[px, py]`, d3-geo's shape, so a d3 projection is a valid argument as it
+stands. On a globe or an azimuthal chart, where a point lands on screen
+depends on both its coordinates, so it receives the pair at once.
+
+> **Deprecated:** the pair of callbacks `x(lon, lat)` and `y(lat, lon)` in
+> `project`'s place still works, and warns once. The same goes for every
+> function below that takes `project`.
 
 `rings` may also be an async iterable of rings, for a source that hands them
 over piece by piece. Each ring is drawn as it arrives, exactly as an array's
@@ -76,15 +80,15 @@ an array or other sync iterable is still drawn before `limn` returns, and
 nothing is returned. Draw nothing else on that context until the promise
 settles: the rings share its saved state and, with `oneStroke`, its path.
 
-| Option      | Default       |                                                                                                       |
-| ----------- | ------------- | ----------------------------------------------------------------------------------------------------- |
-| `color`     | context's own | Stroke style.                                                                                         |
-| `alpha`     | `0.45`        | Coastline under data should stay under it.                                                            |
-| `width`     | `1`           | Line width in pixels.                                                                                 |
-| `cap`       | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
-| `oneStroke` | `false`       | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join.  |
-| `lonCenter` | `0`           | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place.        |
-| `visible`   | —             | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
+| Option            | Default       |                                                                                                       |
+| ----------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
+| `color`           | context's own | Stroke style.                                                                                         |
+| `alpha`           | `0.45`        | Coastline under data should stay under it.                                                            |
+| `width`           | `1`           | Line width in pixels.                                                                                 |
+| `lineCap`         | context's own | How a stroke ends where the pen lifts: `'butt'`, `'round'` or `'square'`, the canvas's own `lineCap`. |
+| `oneStroke`       | `false`       | A translucent stroke lays down once where rings meet or overlap, instead of darkening at every join.  |
+| `centralMeridian` | `0`           | The longitude your projection measures from. Wrong, and the seam guard guards the wrong place.        |
+| `visible`         | —             | `(lon, lat) => bool`. Refused points lift the pen: a globe's far side, an azimuthal chart's antipode. |
 
 ### `geojsonPolygons(geojson)` → `[[outer, …holes], …]`
 
@@ -92,34 +96,34 @@ Every polygon in a GeoJSON document, holes kept, cached like
 `geojsonRings`. Lines and points are skipped. This is what you hand to `fill`
 and `trace`.
 
-### `fill(ctx, polygons, x, y, options)`
+### `fill(ctx, polygons, project, options)`
 
 Fills land. A polygon that crosses the seam is filled as two shapes meeting
 at the map's edge, never as one smeared across it. On a globe, land is cut
 at the horizon and closed along it, so only the near side is filled.
 
-| Option      | Default       |                                                                                                                  |
-| ----------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `color`     | context's own | Fill style.                                                                                                      |
-| `alpha`     | `1`           | Opacity.                                                                                                         |
-| `rule`      | `'evenodd'`   | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
-| `lonCenter` | `0`           | As for `limn`.                                                                                                   |
-| `visible`   | —             | As for `limn`: refused land is cut away along the horizon, never projected.                                      |
+| Option            | Default       |                                                                                                                  |
+| ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `color`           | context's own | Fill style.                                                                                                      |
+| `alpha`           | `1`           | Opacity.                                                                                                         |
+| `rule`            | `'evenodd'`   | Canvas fill rule. Even-odd keeps holes whichever way their rings run; `'nonzero'` if your data promises winding. |
+| `centralMeridian` | `0`           | As for `limn`.                                                                                                   |
+| `visible`         | —             | As for `limn`: refused land is cut away along the horizon, never projected.                                      |
 
-### `trace(ctx, polygons, x, y, { lonCenter, visible })`
+### `trace(ctx, polygons, project, { centralMeridian, visible })`
 
 The same path as `fill`, left for you to fill or clip. Clip to it to keep a
 stroke on the land:
 
 ```js
 ctx.save();
-trace(ctx, geojsonPolygons(land), x, y, { lonCenter });
+trace(ctx, geojsonPolygons(land), project, { centralMeridian });
 ctx.clip('evenodd');
-limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCenter });
+limn(ctx, geojsonRings(coastline), project, { oneStroke: true, lineCap: 'round', centralMeridian });
 ctx.restore();
 ```
 
-### `cap([lon, lat], angle)` → `visible(lon, lat)`
+### `withinCap([lon, lat], angle)` → `visible(lon, lat)`
 
 The `visible` that nearly every centred projection wants: admits the points
 strictly within `angle` degrees of arc of the centre. `90` is an orthographic
@@ -127,7 +131,7 @@ globe's near side; just under `180` (say `179`) is an azimuthal chart with its
 antipode refused.
 
 ```js
-limn(ctx, rings, x, y, { lonCenter: -60, visible: cap([-60, 45], 90) });
+limn(ctx, rings, project, { centralMeridian: -60, visible: withinCap([-60, 45], 90) });
 ```
 
 ### `rhumb([lon, lat], bearing, length, steps = 64)` → `[[lon, lat], …]`
@@ -138,21 +142,21 @@ miles), as up to `steps + 1` points for `limn` to draw. A portolan chart's
 lattice is many of these. It is straight only on Mercator, and it stops at 85°
 latitude rather than spiral into the pole.
 
-### The hand: `runs`, `pen`, `simplify`, `meander`, `footprint`, `lozenge`, `hatch`
+### The hand: `runs`, `pen`, `simplify`, `meander`, `boundingBox`, `lozenge`, `hatch`
 
 A period chart's rivers wiggle, its lakes are lozenges and its seas are
 hatched. These work in pixels, after projection, so a wiggle is one size at
 every zoom.
 
-- `runs(rings, x, y, { lonCenter, visible })`: pixel runs, the pen lifted where `limn` lifts it.
+- `runs(rings, project, { centralMeridian, visible })`: pixel runs, the pen lifted where `limn` lifts it.
 - `pen(ctx, runs, { close })` adds pixel runs to the current path, to stroke or fill.
 - `simplify(run, tolerance)` drops bends smaller than `tolerance` px, before a wave goes on.
 - `meander(run, { amplitude, wavelength, phase })`: the run wiggling, still ending where it did.
-- `footprint(run)` → `{ cx, cy, angle, length, width }`, a shape's box along its long axis.
+- `boundingBox(run)` → `{ cx, cy, angle, length, width }`, a shape's oriented bounding box along its long axis.
 - `lozenge(box, steps = 24)`: a closed pointed oval on that box.
-- `hatch(ctx, polygons, x, y, { angle, gap, amplitude, dash, … })` strokes parallel lines, clipped.
+- `hatch(ctx, polygons, project, { angle, gap, amplitude, dash, … })` strokes parallel lines, clipped.
 
-### `letter(ctx, names, x, y, options)` → placed names
+### `letter(ctx, names, project, options)` → placed names
 
 Letters names onto the chart. A coast's name is set along the coast, on the
 land, its letters standing on the shore so that it reads from the sea. A
@@ -169,9 +173,8 @@ letter(
     { text: 'Palermo', at: [13.36, 38.12] }, // a point
     { text: 'Malta', at: { type: 'Point', coordinates: [14.4, 35.9] } },
   ],
-  x,
-  y,
-  { fonts: ['IM Fell English', 'Georgia', 'serif'], size: 13, color: '#6b2a1a', lonCenter },
+  project,
+  { fonts: ['IM Fell English', 'Georgia', 'serif'], size: 13, color: '#6b2a1a', centralMeridian },
 );
 ```
 
@@ -196,11 +199,11 @@ or a `FontFace`, then draw.
 | `gap`             | `0.3 × size`  | Pixels between the coast and the letters.                                    |
 | `padding`         | `2`           | Pixels kept clear round each name when testing overlap.                      |
 | `upright`         | `true`        | Turn upside-down names round. `false` keeps every name reading from the sea. |
-| `lonCenter`       | `0`           | As for `limn`: a coast crossing the seam is lettered on its longer side.     |
+| `centralMeridian` | `0`           | As for `limn`: a coast crossing the seam is lettered on its longer side.     |
 | `visible`         | —             | As for `limn`: a name whose place is refused is not drawn.                   |
 
 Returns the names it drew, each `{ text, font, x, y, angle, baseline, box }`.
-`place(ctx, names, x, y, options)` does the layout alone, without drawing.
+`place(ctx, names, project, options)` does the layout alone, without drawing.
 
 ### Portolano decoding, kept for now
 

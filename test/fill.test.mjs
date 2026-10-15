@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { polygons, geojsonPolygons, trace, fill, limn, rhumb, cap } from '../lib/index.js';
+import { polygons, geojsonPolygons, trace, fill, limn, rhumb, withinCap } from '../lib/index.js';
 
 const require = createRequire(import.meta.url);
 const land = require('./fixtures/land-110m.json');
@@ -19,12 +19,12 @@ function recordingContext() {
     beginPath() {
       calls.push('beginPath');
     },
-    moveTo(point) {
-      ring = [point];
+    moveTo(px, py) {
+      ring = [[px, py]];
       rings.push(ring);
     },
-    lineTo(point) {
-      ring.push(point);
+    lineTo(px, py) {
+      ring.push([px, py]);
     },
     closePath() {},
     fill() {
@@ -35,9 +35,8 @@ function recordingContext() {
     },
   };
 }
-// x carries both coordinates through to the recorder; y is unused.
-const x = (lon, lat) => [lon, lat];
-const y = () => 0;
+// The identity: the recorder sees the lon/lat it was given.
+const project = (point) => point;
 
 const delta = (lon, centre) => ((((lon - centre + 180) % 360) + 360) % 360) - 180;
 /** Shoelace area in (offset from centre, lat) degrees. */
@@ -60,7 +59,7 @@ const box = (lon0, lon1, lat0, lat1) => [
 test('a ring clear of the seam is traced exactly as given', () => {
   const ctx = recordingContext();
   const ring = box(-10, 10, 40, 50);
-  trace(ctx, [[ring]], x, y);
+  trace(ctx, [[ring]], project);
   assert.deepEqual(ctx.rings, [ring]);
 });
 
@@ -70,7 +69,7 @@ test('a ring across the seam is cut there, one piece each side, area kept', () =
     [box(-10, 10, 40, 50), 180], // across Greenwich, for a Pacific-centred map
   ]) {
     const ctx = recordingContext();
-    trace(ctx, [[ring]], x, y, { lonCenter: centre });
+    trace(ctx, [[ring]], project, { centralMeridian: centre });
     assert.equal(ctx.rings.length, 2, `centre ${centre}`);
     for (const piece of ctx.rings) {
       const offsets = piece.map(([lon]) => delta(lon, centre));
@@ -86,7 +85,7 @@ test('a ring round the pole is closed along that pole', () => {
   const ring = [];
   for (let lon = -180; lon <= 180; lon += 30) ring.push([lon, -70]);
   const ctx = recordingContext();
-  trace(ctx, [[ring]], x, y, { lonCenter: 45 });
+  trace(ctx, [[ring]], project, { centralMeridian: 45 });
   const total = ctx.rings.reduce((sum, piece) => sum + area(piece, 45), 0);
   assert.ok(Math.abs(total - 360 * 20) < 1e-6, `area ${total}`);
   assert.ok(
@@ -98,7 +97,7 @@ test('a ring round the pole is closed along that pole', () => {
 test('the land, filled from any centre, never lays a shape across the map', () => {
   for (const centre of [0, 90, 180, -150]) {
     const ctx = recordingContext();
-    fill(ctx, polygons(land), x, y, { lonCenter: centre });
+    fill(ctx, polygons(land), project, { centralMeridian: centre });
     assert.deepEqual(ctx.calls, ['beginPath', 'fill']);
     for (const piece of ctx.rings) {
       for (let i = 1; i < piece.length; i++) {
@@ -123,24 +122,24 @@ const within = (rings, [px, py]) => {
   return odd;
 };
 
-for (const [lonCenter, lat0] of [
+for (const [centralMeridian, lat0] of [
   [178, -17], // the far side holds Africa and Europe, which would otherwise land mirrored inside the same disc
   [-120, 0], // the horizon passes slivers of land too thin to say on their own which side is land
 ]) {
-  test(`on an orthographic globe at ${lonCenter},${lat0}, only the near side is filled and nothing behind is projected`, () => {
+  test(`on an orthographic globe at ${centralMeridian},${lat0}, only the near side is filled and nothing behind is projected`, () => {
     const D = Math.PI / 180;
-    const near = cap([lonCenter, lat0], 90);
+    const near = withinCap([centralMeridian, lat0], 90);
     const ortho = ([lon, lat]) => [
-      Math.cos(lat * D) * Math.sin(delta(lon, lonCenter) * D),
+      Math.cos(lat * D) * Math.sin(delta(lon, centralMeridian) * D),
       Math.cos(lat0 * D) * Math.sin(lat * D) -
-        Math.sin(lat0 * D) * Math.cos(lat * D) * Math.cos(delta(lon, lonCenter) * D),
+        Math.sin(lat0 * D) * Math.cos(lat * D) * Math.cos(delta(lon, centralMeridian) * D),
     ];
-    const guarded = (lon, lat) => {
+    const guarded = ([lon, lat]) => {
       assert.ok(near(lon, lat), `far-side point projected: ${lon},${lat}`);
       return [lon, lat];
     };
     const ctx = recordingContext();
-    trace(ctx, polygons(land), guarded, y, { lonCenter, visible: near });
+    trace(ctx, polygons(land), guarded, { centralMeridian, visible: near });
     const drawn = ctx.rings.map((ring) => ring.map(ortho));
     const truth = polygons(land).flat();
     let wrong = 0;
@@ -159,17 +158,17 @@ for (const [lonCenter, lat0] of [
 
 test('land round an antipode mask keeps a hole there, across the seam', () => {
   // The mask sits on the seam, as an azimuthal chart's always does.
-  const lonCenter = -150;
+  const centralMeridian = -150;
   const D = Math.PI / 180;
   // Refuses 10° round 30,0: a 170° cap about its antipode, -150,0.
-  const shown = cap([30 - 180, 0], 170);
-  const plane = (lon, lat) => {
+  const shown = withinCap([30 - 180, 0], 170);
+  const plane = ([lon, lat]) => {
     assert.ok(shown(lon, lat), `masked point projected: ${lon},${lat}`);
-    return [delta(lon, lonCenter), lat];
+    return [delta(lon, centralMeridian), lat];
   };
   const ctx = recordingContext();
-  trace(ctx, [[box(15, 45, -20, 20)]], plane, y, { lonCenter, visible: shown });
-  const at = (lon, lat) => within(ctx.rings, [delta(lon, lonCenter), lat]);
+  trace(ctx, [[box(15, 45, -20, 20)]], plane, { centralMeridian, visible: shown });
+  const at = (lon, lat) => within(ctx.rings, [delta(lon, centralMeridian), lat]);
   for (const [lon, lat] of [
     [27, 0],
     [33, 4],
@@ -192,15 +191,15 @@ test('land round an antipode mask keeps a hole there, across the seam', () => {
 });
 
 test('land that surrounds an antipode mask keeps a hole there', () => {
-  const lonCenter = -150;
+  const centralMeridian = -150;
   const D = Math.PI / 180;
   const shown = (lon, lat) => Math.cos(lat * D) * Math.cos((lon - 30) * D) < Math.cos(10 * D);
   const ctx = recordingContext();
-  trace(ctx, [[box(0, 60, -30, 30)]], (lon, lat) => [delta(lon, lonCenter), lat], y, {
-    lonCenter,
+  trace(ctx, [[box(0, 60, -30, 30)]], ([lon, lat]) => [delta(lon, centralMeridian), lat], {
+    centralMeridian,
     visible: shown,
   });
-  const at = (lon, lat) => within(ctx.rings, [delta(lon, lonCenter), lat]);
+  const at = (lon, lat) => within(ctx.rings, [delta(lon, centralMeridian), lat]);
   assert.ok(!at(29, 0), 'the masked centre is filled');
   assert.ok(at(10, 25), 'land clear of the mask is left unfilled');
 });
@@ -230,7 +229,7 @@ test('geojsonPolygons keeps polygons whole and skips what encloses nothing', () 
 
 test('limn with oneStroke strokes every ring as one path', () => {
   const ctx = recordingContext();
-  limn(ctx, [box(0, 1, 0, 1), box(2, 3, 0, 1)], x, y, { oneStroke: true });
+  limn(ctx, [box(0, 1, 0, 1), box(2, 3, 0, 1)], project, { oneStroke: true });
   assert.deepEqual(ctx.calls, ['beginPath', 'stroke']);
   assert.equal(ctx.rings.length, 2);
 });

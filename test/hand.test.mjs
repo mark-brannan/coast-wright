@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runs, simplify, meander, footprint, lozenge, hatch } from '../lib/index.js';
+import { runs, simplify, meander, boundingBox, lozenge, hatch } from '../lib/index.js';
 
 const close = (actual, expected, tolerance, message) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${message}: ${actual} is not ${expected}`);
@@ -30,11 +30,7 @@ test('runs lifts the pen across the seam', () => {
     [-170, 3],
   ];
   assert.deepEqual(
-    runs(
-      [ring],
-      (lon) => lon,
-      (lat) => lat,
-    ),
+    runs([ring], ([lon, lat]) => [lon, lat]),
     [
       [
         [170, 0],
@@ -47,15 +43,7 @@ test('runs lifts the pen across the seam', () => {
     ],
   );
   // Centred on the antimeridian, the same ring is all on one side.
-  assert.equal(
-    runs(
-      [ring],
-      (lon) => lon,
-      (lat) => lat,
-      { lonCenter: 180 },
-    ).length,
-    1,
-  );
+  assert.equal(runs([ring], ([lon, lat]) => [lon, lat], { centralMeridian: 180 }).length, 1);
 });
 
 test('runs lifts the pen at a refused point and never projects it', () => {
@@ -70,8 +58,7 @@ test('runs lifts the pen at a refused point and never projects it', () => {
         [4, 0],
       ],
     ],
-    (lon) => (asked.push(lon), lon),
-    (lat) => lat,
+    ([lon, lat]) => (asked.push(lon), [lon, lat]),
     { visible: (lon) => lon !== 2 },
   );
   assert.deepEqual(out, [
@@ -168,7 +155,7 @@ test('meander of a run with no length is the run', () => {
   );
 });
 
-test('footprint recovers a rotated rectangle', () => {
+test('boundingBox recovers a rotated rectangle', () => {
   const [cx, cy, angle, length, width] = [120, 80, 0.6, 100, 30];
   const corner = (u, v) => [
     cx + u * Math.cos(angle) - v * Math.sin(angle),
@@ -181,7 +168,7 @@ test('footprint recovers a rotated rectangle', () => {
     corner(-50, 15),
     corner(-50, -15),
   ];
-  const box = footprint(ring);
+  const box = boundingBox(ring);
   const turn = (((box.angle - angle) % Math.PI) + Math.PI) % Math.PI;
   assert.ok(Math.min(turn, Math.PI - turn) < 1e-9, `angle ${box.angle}`);
   close(box.length, length, 1e-9, 'length');
@@ -203,7 +190,7 @@ test('lozenge is a closed pointed oval on its box', () => {
   close(across[along.indexOf(Math.max(...along))], 0, 1e-9, 'tip on the axis');
   close(across[along.indexOf(Math.min(...along))], 0, 1e-9, 'other tip on the axis');
   close(Math.max(...across.map(Math.abs)), box.width / 2, 1e-9, 'half-width');
-  const fitted = footprint(ring);
+  const fitted = boundingBox(ring);
   close(fitted.length, box.length, 1e-9, 'fits its own box');
 });
 
@@ -242,10 +229,11 @@ const square = [
 ];
 const x = (lon) => lon * 10;
 const y = (lat) => lat * 10;
+const project = ([lon, lat]) => [x(lon), y(lat)];
 
 test('hatch clips to the polygons, then strokes parallel lines across them', () => {
   const ctx = recordingContext();
-  hatch(ctx, square, x, y, { angle: 0, gap: 10 });
+  hatch(ctx, square, project, { angle: 0, gap: 10 });
   assert.deepEqual(ctx.calls, ['save', 'clip evenodd', 'stroke', 'restore']);
   for (const line of ctx.paths) assert.equal(line[0][1], line[line.length - 1][1], 'level');
   const heights = ctx.paths.map((line) => line[0][1]).sort((a, b) => a - b);
@@ -257,7 +245,7 @@ test('hatch clips to the polygons, then strokes parallel lines across them', () 
 
 test('hatch meanders each line when given an amplitude, and dashes when asked', () => {
   const ctx = recordingContext();
-  hatch(ctx, square, x, y, { angle: Math.PI / 2, gap: 5, amplitude: 1.5, dash: [4, 2] });
+  hatch(ctx, square, project, { angle: Math.PI / 2, gap: 5, amplitude: 1.5, dash: [4, 2] });
   assert.ok(ctx.calls.includes('dash 4,2'));
   assert.ok(ctx.paths.length >= 20);
   for (const line of ctx.paths) {
@@ -269,6 +257,6 @@ test('hatch meanders each line when given an amplitude, and dashes when asked', 
 
 test('hatch with nothing to hatch strokes nothing and restores', () => {
   const ctx = recordingContext();
-  hatch(ctx, [], x, y);
+  hatch(ctx, [], project);
   assert.deepEqual(ctx.calls, ['save', 'clip evenodd', 'restore']);
 });

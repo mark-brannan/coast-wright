@@ -28,6 +28,7 @@ function textContext() {
 // Plate carrée, ten pixels a degree, screen y running down.
 const x = (lon) => lon * 10;
 const y = (lat) => -lat * 10;
+const project = ([lon, lat]) => [x(lon), y(lat)];
 
 const ys = (box) => box.map(([, py]) => py);
 const xs = (box) => box.map(([px]) => px);
@@ -45,8 +46,7 @@ test('a coast with the land to the north reads level, standing on the shore', ()
         ],
       },
     ],
-    x,
-    y,
+    project,
   );
   assert.ok(near(name.angle, 0));
   assert.ok(
@@ -67,8 +67,7 @@ test('a coast with the land to the south is never upside down: it hangs on the l
         ],
       },
     ],
-    x,
-    y,
+    project,
   );
   assert.ok(near(Math.cos(name.angle), 1), 'level, not turned over');
   assert.ok(
@@ -89,8 +88,7 @@ test('with upright off, the same name reads from the sea, upside down on screen'
         ],
       },
     ],
-    x,
-    y,
+    project,
     {
       upright: false,
     },
@@ -114,8 +112,7 @@ test('a coast running north with the land to the west reads up the page, from th
         ],
       },
     ],
-    x,
-    y,
+    project,
   );
   assert.ok(near(name.angle, -Math.PI / 2), 'reads bottom to top, as from the east');
   assert.ok(
@@ -137,8 +134,7 @@ test('land on the right puts the name on the other side', () => {
         land: 'right',
       },
     ],
-    x,
-    y,
+    project,
   );
   assert.ok(xs(name.box).every((px) => px > name.x));
 });
@@ -153,7 +149,7 @@ test('an island ring as Natural Earth winds it keeps its name on the island', ()
     [0, 0],
     [5, 0],
   ];
-  const [name] = place(textContext(), [{ text: 'Sal', at: island }], x, y);
+  const [name] = place(textContext(), [{ text: 'Sal', at: island }], project);
   for (const [px, py] of name.box) {
     assert.ok(px > x(0) && px < x(10) && py > y(10) && py < y(0), `${px},${py} is inside`);
   }
@@ -163,8 +159,7 @@ test('a point name sits level above its point', () => {
   const [name] = place(
     textContext(),
     [{ text: 'Malta', at: { type: 'Point', coordinates: [14, 36] } }],
-    x,
-    y,
+    project,
   );
   assert.equal(name.x, 140);
   assert.equal(name.angle, 0);
@@ -177,7 +172,7 @@ test('names that would overlap are dropped, the earlier one kept', () => {
     { text: 'Genoa', at: [9, 44.4] },
     { text: 'Napoli', at: [14.3, 40.8] },
   ];
-  const placed = place(textContext(), names, x, y);
+  const placed = place(textContext(), names, project);
   assert.deepEqual(
     placed.map((n) => n.text),
     ['Genova', 'Napoli'],
@@ -194,7 +189,7 @@ test('names turned along a coast collide by their turned boxes, not their level 
       [0, lat + 1],
     ],
   });
-  const placed = place(textContext(), [coast(0), coast(5)], x, y);
+  const placed = place(textContext(), [coast(0), coast(5)], project);
   assert.equal(placed.length, 2);
 });
 
@@ -206,8 +201,7 @@ test('the caller names the fonts: one family or several, quoted where needed', (
       { text: 'Venezia', at: [12, 45] },
       { text: 'Ragusa', at: [18, 42], fonts: 'IM Fell English' },
     ],
-    x,
-    y,
+    project,
     { fonts: ['Cinzel Decorative', 'Georgia', 'serif'], size: 14, style: 'italic' },
   );
   assert.equal(ctx.fonts[0], 'italic 14px "Cinzel Decorative", "Georgia", serif');
@@ -221,9 +215,9 @@ test('a coast across the seam is lettered on its longer side; a hidden one not a
     [179, 0],
     [-179, 0],
   ];
-  const [name] = place(textContext(), [{ text: 'Fiji', at: across }], x, y);
+  const [name] = place(textContext(), [{ text: 'Fiji', at: across }], project);
   assert.ok(name.x > x(170) && name.x < x(179));
-  const hidden = place(textContext(), [{ text: 'Fiji', at: across }], x, y, {
+  const hidden = place(textContext(), [{ text: 'Fiji', at: across }], project, {
     visible: () => false,
   });
   assert.equal(hidden.length, 0);
@@ -237,8 +231,7 @@ test('letter draws exactly the names that fit', () => {
       { text: 'Genova', at: [8.9, 44.4] },
       { text: 'Genoa', at: [9, 44.4] },
     ],
-    x,
-    y,
+    project,
     { color: '#5a3' },
   );
   assert.deepEqual(ctx.drawn, ['Genova']);
@@ -253,7 +246,7 @@ test('an island ring shorter than its name is still named, level above it', () =
     [0, 0.5],
     [0, 0],
   ];
-  const [name] = place(textContext(), [{ text: 'Lampedusa', at: islet }], x, y);
+  const [name] = place(textContext(), [{ text: 'Lampedusa', at: islet }], project);
   assert.equal(name.angle, 0);
   assert.ok(near(name.x, x(0.25)));
   assert.ok(
@@ -264,7 +257,9 @@ test('an island ring shorter than its name is still named, level above it', () =
 
 test('a font stack given as one CSS string is split into its families', () => {
   const ctx = textContext();
-  place(ctx, [{ text: 'Rodi', at: [28, 36] }], x, y, { fonts: 'IM Fell English, Georgia, serif' });
+  place(ctx, [{ text: 'Rodi', at: [28, 36] }], project, {
+    fonts: 'IM Fell English, Georgia, serif',
+  });
   assert.equal(ctx.fonts[0], '12px "IM Fell English", "Georgia", serif');
 });
 
@@ -272,7 +267,7 @@ test('a geometry it cannot letter along throws, and leaves the context as it fou
   let depth = 0;
   const ctx = Object.assign(textContext(), { save: () => depth++, restore: () => depth-- });
   assert.throws(
-    () => place(ctx, [{ text: 'Creta', at: { type: 'Polygon', coordinates: [] } }], x, y),
+    () => place(ctx, [{ text: 'Creta', at: { type: 'Polygon', coordinates: [] } }], project),
     /Polygon/,
   );
   assert.equal(depth, 0);
@@ -280,33 +275,35 @@ test('a geometry it cannot letter along throws, and leaves the context as it fou
 
 test('a family name with a quote or backslash is escaped, not broken', () => {
   const ctx = textContext();
-  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['Odd "Face"\\', 'serif'] });
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], project, { fonts: ['Odd "Face"\\', 'serif'] });
   assert.equal(ctx.fonts[0], '12px "Odd \\"Face\\"\\\\", serif');
 });
 
 test('a pre-quoted family is unquoted and requoted, so a stray quote cannot escape', () => {
   const ctx = textContext();
-  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['"Odd"Face"', "'Plain'", 'serif'] });
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], project, {
+    fonts: ['"Odd"Face"', "'Plain'", 'serif'],
+  });
   assert.equal(ctx.fonts[0], '12px "Odd\\"Face", "Plain", serif');
 });
 
 test('a control character in a family becomes a CSS escape', () => {
   const ctx = textContext();
-  place(ctx, [{ text: 'Cos', at: [27, 37] }], x, y, { fonts: ['A\nB;\x00'] });
+  place(ctx, [{ text: 'Cos', at: [27, 37] }], project, { fonts: ['A\nB;\x00'] });
   assert.equal(ctx.fonts[0], '12px "A\\a B;\\0 "');
 });
 
 test('a size that is not a positive finite number falls back to the default', () => {
   for (const bad of [NaN, Infinity, -4, 0, '12px; x', null]) {
     const ctx = textContext();
-    place(ctx, [{ text: 'Cos', at: [27, 37], size: bad }], x, y, { size: bad });
+    place(ctx, [{ text: 'Cos', at: [27, 37], size: bad }], project, { size: bad });
     assert.match(ctx.fonts[0], /^12px /);
   }
 });
 
 // A town at (5, 0), lettered across a shore; the land lies to the given side.
 const across = (shore, land, at = [5, 0]) => {
-  const [name] = place(textContext(), [{ text: 'Genova', at, shore, land }], x, y);
+  const [name] = place(textContext(), [{ text: 'Genova', at, shore, land }], project);
   return name;
 };
 const turned = (angle) => Math.cos(angle) >= -1e-9;
@@ -401,8 +398,7 @@ test('without upright a perpendicular name reads from the shore inland', () => {
         ],
       },
     ],
-    x,
-    y,
+    project,
     { upright: false },
   );
   assert.ok(near(name.angle, -Math.PI / 2), 'up the page');
@@ -424,8 +420,7 @@ test('an empty or hidden shore leaves a point name level', () => {
         ],
       },
     ],
-    x,
-    y,
+    project,
     { visible: (lon, lat) => lon === 5 && lat === 0 },
   );
   assert.equal(hidden.angle, 0);
