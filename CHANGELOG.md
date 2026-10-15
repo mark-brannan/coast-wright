@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.5-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.4-alpha.1...v0.0.5-alpha.1) (2026-10-15)
+
+
+### Added
+
+* **api:** centralMeridian, boundingBox, lineCap, withinCap and one project([lon, lat]) ([#47](https://github.com/mark-brannan/coast-wright/issues/47)) ([7afbe4d](https://github.com/mark-brannan/coast-wright/commit/7afbe4d2eef9291ca60fda6f686afa5e659f40f3))
+* **cap:** a predicate for the points within an angle of a centre ([#44](https://github.com/mark-brannan/coast-wright/issues/44)) ([9da243b](https://github.com/mark-brannan/coast-wright/commit/9da243bb40608aa809b25eec8f3cf8372ab152ee))
+* **limn:** lonCenter: null turns the longitude-seam rule off ([#46](https://github.com/mark-brannan/coast-wright/issues/46)) ([cb05b90](https://github.com/mark-brannan/coast-wright/commit/cb05b9092950302a2587fdc85a15791780cc6eeb))
+
 ## [0.0.4-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.3-alpha.1...v0.0.4-alpha.1) (2026-10-15)
 
 
