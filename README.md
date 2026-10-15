@@ -69,6 +69,13 @@ where a point lands on screen depends on both its coordinates, so each
 function also receives the other one: `x(lon, lat)` and `y(lat, lon)`. A
 function that ignores the second argument keeps working.
 
+`rings` may also be an async iterable of rings, for a source that hands them
+over piece by piece. Each ring is drawn as it arrives, exactly as an array's
+would be, and `limn` returns a promise that resolves when the iterable ends;
+an array or other sync iterable is still drawn before `limn` returns, and
+nothing is returned. Draw nothing else on that context until the promise
+settles: the rings share its saved state and, with `oneStroke`, its path.
+
 | Option      | Default       |                                                                                                       |
 | ----------- | ------------- | ----------------------------------------------------------------------------------------------------- |
 | `color`     | context's own | Stroke style.                                                                                         |

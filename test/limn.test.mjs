@@ -134,6 +134,72 @@ test('limn projects through the caller functions and nothing else', () => {
   ]);
 });
 
+// The provider hands rings over piece by piece; the pen must do exactly what
+// it does for the same rings in an array, and the promise must settle only
+// once the last ring is drawn.
+test('an async iterable of rings draws exactly what the array does', async () => {
+  const { x, y } = project(0);
+  const calls = () => {
+    const log = [];
+    const ctx = new Proxy(
+      {},
+      {
+        get:
+          (_, name) =>
+          (...args) =>
+            log.push([name, ...args]),
+        set: (_, name, value) => (log.push([name, value]), true),
+      },
+    );
+    return { ctx, log };
+  };
+  const options = { color: '#fff', width: 2, cap: 'round' };
+  for (const oneStroke of [false, true]) {
+    const sync = calls();
+    const returned = limn(sync.ctx, rings(coastline), x, y, { ...options, oneStroke });
+    assert.equal(returned, undefined, 'an array is drawn synchronously');
+
+    const streamed = calls();
+    async function* arriving() {
+      for (const ring of rings(coastline)) {
+        await null;
+        yield ring;
+      }
+    }
+    const pending = limn(streamed.ctx, arriving(), x, y, { ...options, oneStroke });
+    assert.ok(pending instanceof Promise);
+    await pending;
+
+    assert.ok(sync.log.length > 1000, `only ${sync.log.length} calls drawn`);
+    assert.deepEqual(streamed.log, sync.log, `oneStroke ${oneStroke}`);
+  }
+});
+
+// A provider that fails mid-stream must not leave the caller's context saved
+// and half-stroked: the promise rejects, and what was drawn is still finished.
+test('an async iterable that throws still strokes and restores the context', async () => {
+  const { x, y } = project(0);
+  for (const oneStroke of [false, true]) {
+    const log = [];
+    const ctx = new Proxy(
+      {},
+      {
+        get:
+          (_, name) =>
+          (...args) =>
+            log.push(name),
+        set: () => true,
+      },
+    );
+    async function* failing() {
+      yield rings(coastline)[0];
+      throw new Error('fetch failed');
+    }
+    await assert.rejects(limn(ctx, failing(), x, y, { oneStroke }), /fetch failed/);
+    assert.deepEqual(log.slice(-2), ['stroke', 'restore'], `oneStroke ${oneStroke}`);
+  }
+});
+
 // Outside the cylindrical family neither output is computable from one
 // coordinate alone, so each function gets the other coordinate too --
 // x(lon, lat) and y(lat, lon), first arguments unchanged so a one-argument
