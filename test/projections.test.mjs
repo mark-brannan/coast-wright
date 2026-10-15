@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { rings, limn } from '../lib/index.js';
+import { rings, limn, cap } from '../lib/index.js';
 import { projections, frame } from '../demo/projections.js';
 
 const require = createRequire(import.meta.url);
@@ -64,7 +64,7 @@ const centres = [
 for (const spec of projections) {
   for (const [lon0, lat0] of centres) {
     test(`${spec.id} draws a map through limn, centred ${lon0},${lat0}`, () => {
-      const { x, y, visible, lonCenter } = frame(spec, lon0, lat0);
+      const { x, y, visible, lonCenter } = frame(spec, lon0, lat0, cap);
       let at = null;
       const segments = [];
       const ctx = {

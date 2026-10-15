@@ -3,7 +3,7 @@
 // when the projection does is the arithmetic handed to it.
 // scripts/build-demo.mjs assembles ./lib and the Natural Earth layers next to
 // this file; nothing here is special-cased per projection.
-import { geojsonRings, limn } from './lib/index.js';
+import { cap, geojsonRings, limn } from './lib/index.js';
 import { projections, frame } from './projections.js';
 
 const D = Math.PI / 180;
@@ -135,7 +135,7 @@ function outline(f, lon0, lat0, top) {
 // zoomed about the centre; the centre is held inside the world so a zoomed
 // cylinder cannot be dragged off its own top.
 function project(s, lon0, lat0, zoom, W, H) {
-  const f = frame(s, lon0, lat0);
+  const f = frame(s, lon0, lat0, cap);
   const edge = outline(f, lon0, lat0, latMax(s));
   let minx = Infinity,
     maxx = -Infinity,

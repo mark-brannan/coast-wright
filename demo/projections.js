@@ -3,14 +3,14 @@
 // body is written to be read -- textbook symbols, one formula per line.
 //
 // The contract with the page (not with coast-wright, which sees none of this):
-// `make(φ0)` closes over the centre latitude and returns `{ X, Y, visible }`
+// `make(φ0)` closes over the centre latitude and returns `{ X, Y, cap }`
 // working in radians, with λ already measured from the centre longitude and
 // wrapped to ±π. X grows east, Y grows north; the page fits the result to the
-// canvas. `visible` is where a projection admits what it cannot draw --
-// orthographic hides the far hemisphere, azimuthal equidistant masks the
-// antipode its arithmetic blows up on. That predicate, passed through to
-// `limn`, is the API this demo exists to force; the wrap seam it does not
-// replace is limn's own.
+// canvas. `cap` is where a projection admits what it cannot draw, as an angle
+// in degrees from the centre -- orthographic hides the far hemisphere (90),
+// azimuthal equidistant masks the antipode its arithmetic blows up on. `frame`
+// turns it into coast-wright's `cap` predicate, which `limn` takes as
+// `visible`; the wrap seam it does not replace is limn's own.
 
 const { sin, cos, tan, atan, asin, acos, log, abs, PI } = Math;
 
@@ -27,8 +27,7 @@ export const hard = [
       const Y = (λ, φ) => cos(φ0) * sin(φ) - sin(φ0) * cos(φ) * cos(λ);
       // Behind the globe: the far hemisphere projects onto the same disc
       // as the near one, so it must not be drawn at all.
-      const visible = (λ, φ) => sin(φ0) * sin(φ) + cos(φ0) * cos(φ) * cos(λ) > 0;
-      return { X, Y, visible };
+      return { X, Y, cap: 90 };
     },
   },
   {
@@ -45,8 +44,7 @@ export const hard = [
       const Y = (λ, φ) => k(λ, φ) * (cos(φ0) * sin(φ) - sin(φ0) * cos(φ) * cos(λ));
       // The antipode maps to the whole rim at once -- k → ∞ -- and coastline
       // near it smears around the edge. Mask a small cap rather than draw it.
-      const visible = (λ, φ) => c(λ, φ) < PI - 0.2;
-      return { X, Y, visible };
+      return { X, Y, cap: 168.5 };
     },
   },
   {
@@ -207,8 +205,7 @@ const azimuthals = [
       const k = (λ, φ) => 2 / (1 + sin(φ0) * sin(φ) + cos(φ0) * cos(φ) * cos(λ));
       const X = (λ, φ) => k(λ, φ) * cos(φ) * sin(λ);
       const Y = (λ, φ) => k(λ, φ) * (cos(φ0) * sin(φ) - sin(φ0) * cos(φ) * cos(λ));
-      const visible = (λ, φ) => sin(φ0) * sin(φ) + cos(φ0) * cos(φ) * cos(λ) > cos((2 * PI) / 3);
-      return { X, Y, visible };
+      return { X, Y, cap: 120 };
     },
   },
 ];
@@ -230,14 +227,15 @@ const wrapped = (d) => (d > 180 ? d - 360 : d < -180 ? d + 360 : d);
 /**
  * A projection centred on (lon0, lat0), shaped for `limn`: degrees in,
  * map units out, Y growing north. The page scales the result to pixels;
- * tests use it as is.
+ * tests use it as is. `cap` is coast-wright's, handed in because the page and
+ * the tests each reach the library by a different path.
  */
-export function frame(spec, lon0, lat0) {
-  const { X, Y, visible } = spec.make(lat0 * D);
+export function frame(spec, lon0, lat0, cap) {
+  const { X, Y, cap: angle } = spec.make(lat0 * D);
   return {
     x: (lon, lat) => X(wrapped(lon - lon0) * D, lat * D),
     y: (lat, lon) => Y(wrapped(lon - lon0) * D, lat * D),
-    visible: visible && ((lon, lat) => visible(wrapped(lon - lon0) * D, lat * D)),
+    visible: angle === undefined ? undefined : cap([lon0, lat0], angle),
     lonCenter: lon0,
   };
 }

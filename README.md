@@ -119,6 +119,17 @@ limn(ctx, geojsonRings(coastline), x, y, { oneStroke: true, cap: 'round', lonCen
 ctx.restore();
 ```
 
+### `cap([lon, lat], angle)` → `visible(lon, lat)`
+
+The `visible` that nearly every centred projection wants: admits the points
+strictly within `angle` degrees of arc of the centre. `90` is an orthographic
+globe's near side; just under `180` (say `179`) is an azimuthal chart with its
+antipode refused.
+
+```js
+limn(ctx, rings, x, y, { lonCenter: -60, visible: cap([-60, 45], 90) });
+```
+
 ### `rhumb([lon, lat], bearing, length, steps = 64)` → `[[lon, lat], …]`
 
 The line a ship sails holding one compass course: `bearing` in degrees
