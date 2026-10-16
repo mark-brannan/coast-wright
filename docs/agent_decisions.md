@@ -27,3 +27,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261014t210452z
 - Format CI job fetches prettier with npx at the version package.json pins, not npm ci (no lockfile tracked) Undo: switch the format job to npm ci once a lockfile lands ([#31](https://github.com/mark-brannan/coast-wright/pull/31))
+
+### 20261016t023257z
+- coast-wright fill/trace: an async item may also be a bare [outer,...holes] polygon Undo: drop the Array.isArray line in polygonsOf ([#48](https://github.com/mark-brannan/coast-wright/pull/48))
