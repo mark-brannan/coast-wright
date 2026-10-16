@@ -102,6 +102,11 @@ Fills land. A polygon that crosses the seam is filled as two shapes meeting
 at the map's edge, never as one smeared across it. On a globe, land is cut
 at the horizon and closed along it, so only the near side is filled.
 
+`polygons` may also be an async iterable of GeoJSON polygons or features,
+for a source that hands land over as it is read or fetched. Given one, `fill`
+and `trace` return a promise. Draw nothing else on that context until the
+promise settles.
+
 | Option            | Default       |                                                                                                                  |
 | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `color`           | context's own | Fill style.                                                                                                      |

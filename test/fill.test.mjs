@@ -288,3 +288,129 @@ test('centralMeridian: null with visible throws rather than fill round the globe
     TypeError,
   );
 });
+
+// An async iterable of polygons or features: what a provider hands over as
+// cells are read. Holes stay holes, and what is not a polygon is skipped.
+
+const square = (lo, hi) => [
+  [lo, lo],
+  [hi, lo],
+  [hi, hi],
+  [lo, hi],
+  [lo, lo],
+];
+const withHole = [square(0, 10), square(4, 6)];
+const island = [square(20, 30)];
+async function* arriving(items) {
+  for (const item of items) {
+    await null;
+    yield item;
+  }
+}
+/** Even-odd: is the point inside an odd number of the traced rings. */
+function painted(rings, [px, py]) {
+  let odd = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) odd = !odd;
+    }
+  }
+  return odd;
+}
+
+test('an async iterable of polygons traces what the array does', async () => {
+  const sync = recordingContext();
+  assert.equal(trace(sync, [withHole, island], project), undefined, 'an array is traced in-call');
+  const streamed = recordingContext();
+  const pending = trace(
+    streamed,
+    arriving([
+      { type: 'Polygon', coordinates: withHole },
+      { type: 'Polygon', coordinates: island },
+    ]),
+    project,
+  );
+  assert.ok(pending instanceof Promise);
+  await pending;
+  assert.equal(sync.rings.length, 3);
+  assert.deepEqual(streamed.rings, sync.rings);
+  assert.deepEqual(streamed.calls, sync.calls);
+});
+
+test('an async iterable of features traces the geometry they hold', async () => {
+  const ctx = recordingContext();
+  await trace(
+    ctx,
+    arriving([
+      { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: island } },
+    ]),
+    project,
+  );
+  assert.deepEqual(ctx.rings, [square(20, 30)]);
+});
+
+test('an async MultiPolygon, alone or in a feature, traces every part, mixed with polygons', async () => {
+  const ctx = recordingContext();
+  await trace(
+    ctx,
+    arriving([
+      { type: 'MultiPolygon', coordinates: [withHole, island] },
+      { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: [[square(40, 50)]] } },
+      { type: 'Polygon', coordinates: [square(60, 70)] },
+    ]),
+    project,
+  );
+  assert.deepEqual(ctx.rings, [
+    square(0, 10),
+    square(4, 6),
+    square(20, 30),
+    square(40, 50),
+    square(60, 70),
+  ]);
+});
+
+test('an async polygon with a hole leaves the hole unpainted', async () => {
+  const ctx = recordingContext();
+  const rules = [];
+  const fillOf = ctx.fill;
+  ctx.fill = (rule) => (rules.push(rule), fillOf());
+  const pending = fill(ctx, arriving([{ type: 'Polygon', coordinates: withHole }]), project);
+  assert.ok(pending instanceof Promise);
+  await pending;
+  assert.deepEqual(rules, ['evenodd']);
+  assert.equal(ctx.calls.filter((c) => c === 'beginPath').length, 1, 'one path, so one rule');
+  assert.equal(painted(ctx.rings, [2, 2]), true, 'the ring is painted');
+  assert.equal(painted(ctx.rings, [5, 5]), false, 'the hole is not');
+});
+
+test('an async feature with null or non-polygon geometry is skipped, not thrown on', async () => {
+  const ctx = recordingContext();
+  await trace(
+    ctx,
+    arriving([
+      { type: 'Feature', geometry: null },
+      { type: 'Feature', geometry: { type: 'LineString', coordinates: square(0, 10) } },
+      { type: 'Feature', geometry: { type: 'Point', coordinates: [1, 1] } },
+      { type: 'LineString', coordinates: square(0, 10) },
+      null,
+      { type: 'Feature', geometry: { type: 'Polygon', coordinates: island } },
+    ]),
+    project,
+  );
+  assert.deepEqual(ctx.rings, [square(20, 30)]);
+});
+
+test('an async fill restores the context when the iterable throws', async () => {
+  const ctx = recordingContext();
+  const log = [];
+  ctx.save = () => log.push('save');
+  ctx.restore = () => log.push('restore');
+  async function* failing() {
+    yield { type: 'Polygon', coordinates: island };
+    throw new Error('fetch failed');
+  }
+  await assert.rejects(fill(ctx, failing(), project), /fetch failed/);
+  assert.deepEqual(log, ['save', 'restore']);
+});
