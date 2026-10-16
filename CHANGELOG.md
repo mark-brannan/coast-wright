@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.6-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.5-alpha.1...v0.0.6-alpha.1) (2026-10-16)
+
+
+### Added
+
+* **fill:** fill and trace accept an async iterable of polygons or features ([#48](https://github.com/mark-brannan/coast-wright/issues/48)) ([bf76f15](https://github.com/mark-brannan/coast-wright/commit/bf76f156d25c62220ae00a62519e2c85b873b0c1))
+
 ## [0.0.5-alpha.1](https://github.com/mark-brannan/coast-wright/compare/v0.0.4-alpha.1...v0.0.5-alpha.1) (2026-10-15)
 
 
