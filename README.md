@@ -102,6 +102,16 @@ Fills land. A polygon that crosses the seam is filled as two shapes meeting
 at the map's edge, never as one smeared across it. On a globe, land is cut
 at the horizon and closed along it, so only the near side is filled.
 
+`polygons` may also be an async iterable, for a source that hands land over
+as it is read or fetched. Each item is a GeoJSON `Polygon` or `MultiPolygon`,
+a `Feature` whose geometry is one (holes kept), or a bare `[outer, …holes]`
+polygon; anything else, a feature with a null or non-polygon geometry
+included, is skipped. Given an async iterable, `fill` and `trace` return a
+promise that resolves once the land is traced (and, for `fill`, filled).
+Given an array or other sync iterable they run in the call and return
+nothing, as before. Draw nothing else on that context until the promise
+settles. The rings port, `limn`, is unchanged.
+
 | Option            | Default       |                                                                                                                  |
 | ----------------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `color`           | context's own | Fill style.                                                                                                      |
