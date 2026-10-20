@@ -25,7 +25,7 @@ worth understanding before changing anything in `limn.js`:
 degree apart on the ground and 360 apart in the numbers. Joined, they lay a
 line straight across the map. So does a ring passing behind a window centred
 anywhere but Greenwich — which is why each segment is tested against
-`lonCenter`, the longitude the projection measures from, rather than against
+`centralMeridian`, the longitude the projection measures from, rather than against
 the dateline. **A dateline-only guard looks correct until somebody centres the
 map on their own boat**, so a change that reintroduces one will be rejected on
 sight.
@@ -78,7 +78,7 @@ Then:
   path broke, what a decode produced. Canvas output is mocked; a test that
   needs a real browser is a test that does not run.
 - **A seam or projection change comes with a case that fails without it**, and
-  says which `lonCenter` it exercises. Greenwich-centred is the case that hides
+  says which `centralMeridian` it exercises. Greenwich-centred is the case that hides
   bugs.
 - **No dependencies, and no projection.** Both are the point of the library.
 - **Watch the redraw path.** `rings` is decoded once per document and cached

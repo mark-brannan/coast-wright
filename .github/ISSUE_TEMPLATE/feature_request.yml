@@ -57,7 +57,7 @@ body:
     attributes:
       label: Does this touch the seam or the projection?
       description: >
-        If so, say which `lonCenter` cases it has to keep working. A
+        If so, say which `centralMeridian` cases it has to keep working. A
         Greenwich-centred map hides exactly the bugs this library guards
         against. Leave blank if it does not.
     validations:
