@@ -63,8 +63,8 @@ library is the code that touches it first.
   belong to [portolani](https://github.com/mark-brannan/portolani/security);
   the published files belong to
   [coastlines](https://github.com/mark-brannan/coastlines/security).
-- **The projection you supply.** `x` and `y` are your functions, called with
-  your data. What they do is yours.
+- **The projection you supply.** `project` is your function, called with
+  your data. What it does is yours.
 - **A coastline drawn in the wrong place** because `centralMeridian` does not match
   your projection. That is a bug or a usage question — a public issue, and a
   welcome one, because it is the mistake this library exists to make harder.

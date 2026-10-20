@@ -30,7 +30,7 @@ the dateline. **A dateline-only guard looks correct until somebody centres the
 map on their own boat**, so a change that reintroduces one will be rejected on
 sight.
 
-**The projection.** `limn` takes your `x` and `y` and assumes nothing else, so
+**The projection.** `limn` takes your `project` and assumes nothing else, so
 it works over a pole. Nothing in here may acquire a projection, a coordinate
 system, or an opinion about zoom. The reason people hand-roll coastline
 drawing is that every library brought its own Web Mercator, and Mercator cannot

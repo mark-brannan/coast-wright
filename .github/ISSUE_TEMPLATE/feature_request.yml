@@ -8,7 +8,7 @@ body:
         Two things this library will not grow, because they are the reason it
         exists:
 
-        - **A projection of its own.** `x` and `y` are yours. Every library
+        - **A projection of its own.** `project` is yours. Every library
           that brought its own Web Mercator is a library that cannot show a
           pole.
         - **A dependency.** It is about 100 lines and it stays that way.

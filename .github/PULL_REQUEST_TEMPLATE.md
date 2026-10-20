@@ -16,7 +16,7 @@ exercises. A Greenwich-centred map hides exactly what goes wrong at sea, so a
 test at centralMeridian 0 alone does not count. A change that tests segments against
 the dateline rather than against `centralMeridian` will be rejected.
 
-If it touches projection handling: this library takes `x` and `y` and assumes
+If it touches projection handling: this library takes `project` and assumes
 nothing else, including over a pole. Say how that still holds.
 
 Write "no" if neither is involved.
