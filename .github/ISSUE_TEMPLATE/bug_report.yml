@@ -32,11 +32,11 @@ body:
   - type: input
     id: loncenter
     attributes:
-      label: lonCenter
+      label: centralMeridian
       description: >
         The longitude your projection measures from, as passed to `limn`. This
         is the first thing to check for anything drawn in the wrong place: the
-        seam guard tests against `lonCenter`, not against the dateline, so a
+        seam guard tests against `centralMeridian`, not against the dateline, so a
         value that does not match your projection guards the wrong place.
       placeholder: '-71.4 (map centred on the vessel)'
     validations:
@@ -47,9 +47,9 @@ body:
     attributes:
       label: Your projection
       description: >
-        The `x` and `y` functions, or a description — equirectangular,
+        The `project` function, or a description — equirectangular,
         azimuthal over a pole, a band around a vessel. This library assumes
-        nothing about them, so it matters.
+        nothing about it, so it matters.
       render: js
     validations:
       required: true
