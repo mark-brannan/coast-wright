@@ -30,3 +30,6 @@ heading is the UTC stamp, so `agent_decisions.md#<stamp>` links one entry.
 
 ### 20261016t023257z
 - coast-wright fill/trace: an async item may also be a bare [outer,...holes] polygon Undo: drop the Array.isArray line in polygonsOf ([#48](https://github.com/mark-brannan/coast-wright/pull/48))
+
+### 20261104t112224z
+- Conflict with main, which already passes the agent App secrets: kept main's lines plus this PR's two-line comment Undo: drop the comment in a follow-up commit ([#53](https://github.com/mark-brannan/coast-wright/pull/53))
