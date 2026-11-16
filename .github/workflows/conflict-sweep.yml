@@ -28,7 +28,6 @@ jobs:
       contents: read
       pull-requests: write
       issues: read
-      issues: write
       statuses: write
       id-token: write
     uses: mark-brannan/.github/.github/workflows/conflict-sweep.yml@main
